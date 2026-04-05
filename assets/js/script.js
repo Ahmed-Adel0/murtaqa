@@ -57,15 +57,19 @@ function closeMobileNav() {
 
 // ---- FAQ Accordion ----
 function toggleFaq(el) {
-  const item = el.parentElement;
+  const item = el.closest('.faq-item');
+  if (!item) return;
+
   const allItems = document.querySelectorAll('.faq-item');
+  const isOpen = item.classList.contains('open');
 
   // Close others
-  allItems.forEach(i => {
-    if (i !== item) i.classList.remove('open');
-  });
+  allItems.forEach(i => i.classList.remove('open'));
 
-  item.classList.toggle('open');
+  // Toggle current if it wasn't already open
+  if (!isOpen) {
+    item.classList.add('open');
+  }
 }
 
 // ---- Contact Form ----
@@ -74,15 +78,47 @@ function submitForm(e) {
   const form = document.getElementById('contactForm');
   const success = document.getElementById('formSuccess');
 
-  // Simulate submission
+  // Collect data
+  const name = form.querySelector('input[type="text"][placeholder*="الاسم"]').value;
+  const phone = form.querySelector('input[type="tel"]').value;
+  const teacher = document.getElementById('selected_teacher').value || 'غير محدد';
+  const selects = form.querySelectorAll('select');
+  const subject = selects[0]?.value || 'غير محدد';
+  const level = selects[1]?.value || 'غير محدد';
+  const classes = selects[2]?.value || 'غير محدد';
+  const message = form.querySelector('textarea').value || 'لا توجد';
+
+  // Toggle button state
   const btn = form.querySelector('.submit-btn');
+  const originalText = btn.innerHTML;
   btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> جاري الإرسال...';
   btn.disabled = true;
 
+  // Format WhatsApp message
+  const whatsappNumber = "966505855924"; 
+  let msg = `*طلب حجز جديد من BeboCademy*\n\n`;
+  msg += `*الاسم:* ${name}\n`;
+  msg += `*الهاتف:* ${phone}\n`;
+  msg += `*المعلم:* ${teacher}\n`;
+  msg += `*المادة:* ${subject}\n`;
+  msg += `*المستوى:* ${level}\n`;
+  msg += `*الحصص:* ${classes}\n`;
+  msg += `*الرسالة:* ${message}`;
+
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
+
   setTimeout(() => {
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    // UI Feedback
     form.style.display = 'none';
     success.style.display = 'flex';
-  }, 1500);
+    
+    // Restore button for next time (even if hidden)
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }, 1000);
 }
 
 function resetForm() {

@@ -14,13 +14,13 @@
   --accent-light: #FFC94A;
   --dark: #0D1B2A;
   --dark-mid: #1A2E44;
-  --text-main: #1C2B3A;
-  --text-muted: #5D7A8A;
-  --text-light: #8FA8B8;
-  --bg-light: #F4F8FB;
-  --bg-white: #FFFFFF;
-  --bg-section: #EBF3F8;
-  --border: #D0E4EE;
+  --text-main: #F4F8FB;
+  --text-muted: #AAB7C4;
+  --text-light: #5D7A8A;
+  --bg-light: #0B141E;
+  --bg-white: #080D14;
+  --bg-section: #101C2B;
+  --border: #1F364D;
   --success: #27AE60;
   --font-ar: 'Tajawal', sans-serif;
   --font-en: 'DM Serif Display', serif;
@@ -69,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-ar);
   font-weight: 800;
   line-height: 1.3;
-  color: var(--dark);
+  color: white;
 }
 
 h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
@@ -104,7 +104,7 @@ img { display: block; max-width: 100%; }
   margin-bottom: 1rem;
 }
 
-.section-title h2 { color: var(--dark); }
+.section-title h2 { color: white; }
 
 .section-subtitle {
   text-align: center;
@@ -188,7 +188,7 @@ img { display: block; max-width: 100%; }
 
 .btn-outline {
   background: transparent;
-  color: var(--bg-white);
+  color: white;
   border-color: rgba(255,255,255,0.6);
 }
 
@@ -698,7 +698,7 @@ img { display: block; max-width: 100%; }
 }
 
 .step-card {
-  background: white;
+  background: var(--bg-section);
   padding: 3rem 2rem;
   border-radius: var(--radius-lg);
   text-align: center;
@@ -746,7 +746,7 @@ img { display: block; max-width: 100%; }
    OFFER SECTION
    ============================================================ */
 #special-offer {
-  background: white;
+  background: var(--bg-white);
 }
 
 .offer-banner {
@@ -849,7 +849,7 @@ img { display: block; max-width: 100%; }
 }
 
 .about-icon-item {
-  background: white;
+  background: var(--bg-section);
   border-radius: var(--radius-md);
   padding: 1.2rem;
   text-align: center;
@@ -1052,7 +1052,7 @@ img { display: block; max-width: 100%; }
 }
 
 .why-card {
-  background: white;
+  background: var(--bg-section);
   border-radius: var(--radius-lg);
   padding: 2rem 1.5rem;
   text-align: center;
@@ -1095,7 +1095,7 @@ img { display: block; max-width: 100%; }
   margin: 0 auto 1.2rem;
 }
 
-.why-card h4 { font-size: 1.05rem; color: var(--dark); margin-bottom: 0.6rem; }
+.why-card h4 { font-size: 1.05rem; color: white; margin-bottom: 0.6rem; }
 .why-card p { font-size: 0.88rem; line-height: 1.7; }
 
 /* ============================================================
@@ -1113,7 +1113,7 @@ img { display: block; max-width: 100%; }
 }
 
 .teacher-card {
-  background: white;
+  background: var(--bg-section);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -1145,7 +1145,7 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   font-size: 2.2rem;
   margin-bottom: 1rem;
-  border: 3px solid white;
+  border: 3px solid var(--border);
   box-shadow: var(--shadow-md);
   position: relative;
 }
@@ -1166,7 +1166,7 @@ img { display: block; max-width: 100%; }
   color: white;
 }
 
-.teacher-card-header h4 { color: var(--dark); font-size: 1.1rem; margin-bottom: 4px; }
+.teacher-card-header h4 { color: white; font-size: 1.1rem; margin-bottom: 4px; }
 .teacher-card-header .specialty {
   color: var(--secondary);
 }
@@ -1181,7 +1181,7 @@ img { display: block; max-width: 100%; }
   position: relative;
   height: 320px;
   overflow: hidden;
-  background: #fdfdfd;
+  background: var(--bg-section);
 }
 
 .teacher-img {
@@ -1189,7 +1189,7 @@ img { display: block; max-width: 100%; }
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
-  background: #fdfdfd;
+  background: var(--bg-section);
   transition: transform 0.5s ease;
 }
 
@@ -1223,7 +1223,7 @@ img { display: block; max-width: 100%; }
 .teacher-info-header h4 {
   font-size: 1.2rem;
   margin-bottom: 5px;
-  color: var(--dark);
+  color: white;
 }
 
 .teacher-info-header .specialty {
@@ -1305,7 +1305,7 @@ img { display: block; max-width: 100%; }
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: white;
+  background: var(--bg-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1426,7 +1426,7 @@ img { display: block; max-width: 100%; }
 }
 
 .faq-item {
-  background: white;
+  background: var(--bg-section);
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
   border: 1.5px solid var(--border);
@@ -1449,7 +1449,7 @@ img { display: block; max-width: 100%; }
 .faq-question span {
   font-size: 1rem;
   font-weight: 700;
-  color: var(--dark);
+  color: white;
   flex: 1;
 }
 
@@ -1495,7 +1495,7 @@ img { display: block; max-width: 100%; }
    CONTACT SECTION
    ============================================================ */
 #contact {
-  background: white;
+  background: var(--bg-white);
   position: relative;
   overflow: hidden;
 }
@@ -1517,7 +1517,7 @@ img { display: block; max-width: 100%; }
   align-items: start;
 }
 
-.contact-info h3 { color: var(--dark); margin-bottom: 1rem; }
+.contact-info h3 { color: white; margin-bottom: 1rem; }
 .contact-info > p {
   font-size: 1rem;
   line-height: 1.8;
@@ -1562,7 +1562,7 @@ img { display: block; max-width: 100%; }
   border: 1.5px solid var(--border);
 }
 
-.form-title { font-size: 1.3rem; color: var(--dark); margin-bottom: 1.5rem; }
+.form-title { font-size: 1.3rem; color: white; margin-bottom: 1.5rem; }
 
 .form-grid {
   display: grid;
@@ -1596,7 +1596,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-ar);
   font-size: 0.93rem;
   color: var(--text-main);
-  background: white;
+  background: var(--bg-section);
   transition: all var(--transition);
   outline: none;
   direction: rtl;
@@ -1897,9 +1897,9 @@ img { display: block; max-width: 100%; }
   .hero-content { margin: 0 auto; }
   .hero-visual { display: none; }
   
-  .about-grid { grid-template-columns: 1fr; gap: 4rem; }
-  .about-visual { order: -1; }
-  .about-illustration { margin: 0 auto; }
+  .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .about-visual { display: none; }
+  /* .about-illustration { margin: 0 auto; } - not needed if hidden */
   
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .why-grid { grid-template-columns: repeat(2, 1fr); }
@@ -2003,9 +2003,9 @@ img { display: block; max-width: 100%; }
   position: relative;
   border-radius: 22px;
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-  border: 1px solid rgba(0,0,0,0.07);
+  background: var(--bg-section);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
   transition: transform 0.4s cubic-bezier(.25,.8,.25,1), box-shadow 0.4s ease;
   display: flex;
   flex-direction: column;
@@ -2040,7 +2040,7 @@ img { display: block; max-width: 100%; }
   align-items: center;
   justify-content: center;
   padding: 2rem 1.5rem 1.2rem;
-  background: linear-gradient(160deg, #e8f0fe 0%, #dbeafe 100%);
+  background: linear-gradient(160deg, var(--dark-mid) 0%, var(--bg-light) 100%);
   overflow: visible;
 }
 
@@ -2049,9 +2049,9 @@ img { display: block; max-width: 100%; }
   height: 170px;
   border-radius: 50%;
   overflow: hidden;
-  border: 4px solid white;
-  box-shadow: 0 0 0 5px rgba(46,134,171,0.18), 0 8px 30px rgba(27,79,114,0.2);
-  background: #fff;
+  border: 4px solid var(--border);
+  box-shadow: 0 0 0 5px rgba(46,134,171,0.1), 0 8px 30px rgba(0,0,0,0.3);
+  background: var(--bg-section);
   position: relative;
   z-index: 1;
   transition: box-shadow 0.4s ease, transform 0.4s ease;
@@ -2096,7 +2096,7 @@ img { display: block; max-width: 100%; }
 .tcard-badge.hot   { background: linear-gradient(135deg,#ff4d4d,#c0392b); }
 .tcard-badge.top   { background: linear-gradient(135deg,#f0a500,#b7770d); }
 .tcard-badge.quran { background: linear-gradient(135deg,#27ae60,#145a32); }
-.tcard-badge.elite { background: linear-gradient(135deg,#8E44AD,#4A235A); }
+.tcard-badge.elite { background: linear-gradient(135deg, var(--accent), #B8860B); }
 
 /* --- Body --- */
 .tcard-body {
@@ -2128,7 +2128,7 @@ img { display: block; max-width: 100%; }
 .tcard-meta h4 {
   font-size: 1.05rem;
   font-weight: 800;
-  color: var(--dark);
+  color: white;
   margin-bottom: 3px;
   line-height: 1.2;
 }
@@ -2162,7 +2162,7 @@ img { display: block; max-width: 100%; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg-light, #f8fafc);
+  background: var(--bg-light);
   border-radius: 12px;
   padding: 10px 14px;
 }
@@ -2177,7 +2177,7 @@ img { display: block; max-width: 100%; }
 .tcard-stat span {
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--primary);
+  color: white;
   line-height: 1;
   letter-spacing: 0.5px;
 }
@@ -2235,22 +2235,22 @@ img { display: block; max-width: 100%; }
 
 /* Elite card accent */
 .tcard-elite .tcard-btn {
-  background: linear-gradient(135deg, #8E44AD, #4A235A);
-  box-shadow: 0 4px 15px rgba(142,68,173,0.3);
+  background: linear-gradient(135deg, var(--accent), #B8860B);
+  box-shadow: 0 4px 15px rgba(240,165,0,0.3);
 }
 
 .tcard-elite .tcard-btn:hover {
-  box-shadow: 0 6px 22px rgba(142,68,173,0.45);
+  box-shadow: 0 6px 22px rgba(240,165,0,0.45);
 }
 
 .tcard-elite .tcard-subjects span {
-  background: rgba(142,68,173,0.08);
-  color: #8E44AD;
-  border-color: rgba(142,68,173,0.2);
+  background: rgba(240,165,0,0.08);
+  color: var(--accent);
+  border-color: rgba(240,165,0,0.2);
 }
 
-.tcard-elite .tcard-role { color: #8E44AD; }
-.tcard-elite .tcard-avatar-ring { border-color: #8E44AD; box-shadow: 0 0 0 3px rgba(142,68,173,0.12); }
+.tcard-elite .tcard-role { color: var(--accent); }
+.tcard-elite .tcard-avatar-ring { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,165,0,0.12); }
 
 /* --- Bottom CTA Banner --- */
 .teachers-cta-row {
