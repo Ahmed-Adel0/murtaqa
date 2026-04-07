@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-tajawal: var(--font-tajawal), "sans-serif";
+  
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+@layer base {
+  :root {
+    /* Pure Dark Primary Background */
+    --background: 195 40% 6%;
+    /* Pure White Foreground */
+    --foreground: 0 0% 100%;
+    
+    /* Slightly lighter dark for cards */
+    --card: 195 35% 8%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 195 35% 8%;
+    --popover-foreground: 0 0% 100%;
+    
+    /* The Base Primary Color - Refined to match Logo Cyan */
+    --primary: 199 90% 48%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary/Muted elements using alpha or very dark primary hue */
+    --secondary: 199 50% 12%;
+    --secondary-foreground: 199 80% 60%;
+    
+    --muted: 199 30% 15%;
+    --muted-foreground: 199 20% 70%;
+    
+    /* Accent as a brighter primary variant */
+    --accent: 199 80% 60%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 199 35% 15%;
+    --input: 199 35% 15%;
+    --ring: 199 90% 48%;
+    --radius: 0.75rem;
+    
+    --hero-bg: 199 40% 6%;
+    --section-alt: 199 45% 4%;
+  }
+
+  .dark {
+    /* Since the default is now dark, .dark just inherits :root */
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-tajawal antialiased overflow-x-hidden;
+    direction: rtl;
+  }
+}
+
+/* Custom Utilities for Sports-Tech Modern Look */
+.glass {
+  @apply bg-white/70 dark:bg-black/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, hsl(199, 90%, 48%), hsl(199, 80%, 60%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow {
+  @apply relative;
+}
+.glow::after {
+  content: "";
+  @apply absolute inset-0 -z-10 bg-primary/20 blur-[60px] rounded-full;
+}
+
+.glow-text {
+  text-shadow: 0 0 20px hsla(199, 90%, 48%, 0.3);
+}
