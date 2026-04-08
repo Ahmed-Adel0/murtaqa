@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Hero from "@/components/sections/Hero";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import SearchModal from "@/components/SearchModal";
 
 // Lazy load below-the-fold components
 const About = dynamic(() => import("@/components/sections/About"), { ssr: true });
@@ -14,6 +15,7 @@ const FAQ = dynamic(() => import("@/components/sections/FAQ"), { ssr: true });
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
+      <SearchModal />
       <Navbar />
       <Hero />
       <About />
@@ -84,12 +86,12 @@ export default function Home() {
               <div className="space-y-6 w-full">
                 <div className="flex flex-col items-start gap-1 group">
                   <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">العنوان</span>
-                  <span className="text-muted-foreground font-medium text-sm sm:base">المملكة العربية السعودية، تبوك</span>
+                  <span className="text-muted-foreground font-medium text-sm sm:base">المملكة العربية السعودية</span>
                 </div>
-                <div className="flex flex-col items-start gap-1 group">
+                {/* <div className="flex flex-col items-start gap-1 group">
                   <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">البريد الإلكتروني</span>
-                  <span className="text-muted-foreground font-medium text-sm sm:base">info@motqen.com</span>
-                </div>
+                  <span className="text-muted-foreground font-medium text-sm sm:base">[EMAIL_ADDRESS]</span>
+                </div> */}
                 <div className="flex flex-col items-start gap-1 group">
                   <span className="text-[10px] text-primary font-black uppercase tracking-widest opacity-70 group-hover:opacity-100 transition-opacity">واتساب</span>
                   <span className="text-muted-foreground font-medium text-lg" dir="ltr">+966 50 585 5924</span>

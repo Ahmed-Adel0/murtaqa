@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Send, User, BookOpen, GraduationCap, MessageSquare, Briefcase, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,13 +72,13 @@ const RegistrationFormContent = () => {
       {/* Success Modal Overlay */}
       <AnimatePresence>
         {submitted && (
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
           >
-            <motion.div 
+            <m.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               className="glass p-8 sm:p-12 rounded-[2.5rem] border border-primary/20 shadow-2xl max-w-md w-full text-center relative overflow-hidden"
@@ -98,8 +98,8 @@ const RegistrationFormContent = () => {
               >
                 فهمت، شكراً لكم
               </Button>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -120,7 +120,7 @@ const RegistrationFormContent = () => {
           </p>
         </div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -186,13 +186,13 @@ const RegistrationFormContent = () => {
                     className={`w-full bg-background border rounded-xl px-4 py-3 sm:py-4 text-right text-sm text-foreground focus:outline-none transition-all placeholder:text-muted-foreground ${formData.teacherName ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border'}`}
                   />
                   {formData.teacherName && (
-                    <motion.div 
+                    <m.div 
                       initial={{ scale: 0 }} 
                       animate={{ scale: 1 }} 
                       className="absolute left-3 top-1/2 -translate-y-1/2 text-primary"
                     >
                       <CheckCircle2 className="w-5 h-5" />
-                    </motion.div>
+                    </m.div>
                   )}
                 </div>
               </div>
@@ -242,7 +242,7 @@ const RegistrationFormContent = () => {
               بالنقر على هذا الزر، سيتم تحويلك مباشرة للواتساب لإتمام عملية التسجيل مع فريقنا.
             </p>
           </form>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

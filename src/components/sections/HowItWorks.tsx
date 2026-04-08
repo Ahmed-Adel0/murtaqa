@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Edit3, Handshake, GraduationCap, Rocket } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,7 +44,7 @@ const HowItWorks = () => {
           <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-border -translate-y-1/2 z-0" />
           
           {steps.map((s, i) => (
-            <motion.div
+            <m.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -61,7 +61,7 @@ const HowItWorks = () => {
               <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm px-2">
                 {s.desc}
               </p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

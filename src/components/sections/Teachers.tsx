@@ -1,332 +1,156 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Star, CalendarCheck, GraduationCap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star, CalendarCheck, GraduationCap, ArrowLeft, MapPin } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { teachers } from "@/lib/teachers-data";
 
-const teachers = [
-  {
-    name: "أحمد هاشم سباق",
-    role: "مدرس أساسي — ابتدائي",
-    img: "/assets/imgs/ahmed-hashem.jpg",
-    subjects: ["لغتي", "رياضيات", "تأسيس"],
-    rating: "5.0",
-    students: "120+",
-    bio: "يركّز على تعليم الأطفال بطريقة تفاعلية تضمن الفهم العميق، مما يبني أساساً قويًا في القراءة والكتابة والحساب.",
-    badge: " مدرس تأسيس",
-    color: "primary",
-    experienceYears: 10
-  },
-  {
-    name: "عبدالناصر محمد إبراهيم",
-    role: "خبير منهج سعودي — 14 عاماً",
-    img: "/assets/imgs/abdelnaser.jpg",
-    subjects: ["قدرات", "تحصيلي", "ثانوي"],
-    rating: "4.9",
-    students: "14 سنة خبرة",
-    bio: "يساعد الطلاب على تحقيق نتائج متميزة في القدرات والتحصيلي باستراتيجيات ذكية مجربة على مدى 14 عاماً.",
-    badge: "خبير قدرات",
-    color: "primary",
-    experienceYears: 14
-  },
-  {
-    name: "أسامة علي عبدالجواد",
-    role: "علوم وأحياء وقرآن كريم",
-    img: "/assets/imgs/osama ali.jpg",
-    subjects: ["علوم", "أحياء", "قرآن", "تجويد"],
-    rating: "4.8",
-    students: "5+ سنوات",
-    bio: "يجمع بين العلوم الأكاديمية والتربوية، مع خبرة في تحفيظ القرآن والتجويد بأسلوب شيّق يحبب الطالب في العلم والدين.",
-    badge: "محفظ قرآن",
-    color: "primary",
-    experienceYears: 5
-  },
-  {
-    name: "الأستاذ بدر فايد",
-    role: "مدرس اللغة الإنجليزية | مناهج متقدمة",
-    img: "/assets/imgs/dr.badr.jpg",
-    subjects: ["تأسيس لغة", "ماجستير ودكتوراه"],
-    rating: "5.0",
-    students: "22+ سنة خبرة",
-    bio: "يمتلك خبرة طويلة في تدريس اللغة الإنجليزية وفق أحدث المناهج، ويركّز على بناء أساس قوي للطالب.",
-    badge: "خبير إنجليزي",
-    color: "primary",
-    experienceYears: 22
-  },
-  {
-    name: "أحمد عطا صابر",
-    role: "معلم خبير لغة إنجليزية + تأسيس شامل",
-    img: "/assets/imgs/احمد عطا صابر.jpg",
-    subjects: ["إنجليزي", "رياضيات", "علوم", "تأسيس"],
-    rating: "5.0",
-    students: "25+ سنة خبرة",
-    bio: "يتميز بقدرته على تأسيس الطلاب من الصفر وحتى الاحتراف، مع تبسيط المناهج بطريقة تناسب الجميع.",
-    badge: "خبير تأسيس",
-    color: "primary",
-    experienceYears: 25
-  },
-  {
-    name: "محمد أحمد سعد",
-    role: "متخصص قدرات + تحصيلي + علوم",
-    img: "/assets/imgs/محمد  احمد سعد.jpg",
-    subjects: ["قدرات", "تحصيلي", "علوم"],
-    rating: "4.9",
-    students: "5 سنوات خبرة",
-    bio: "يساعد الطلاب على تحسين نتائجهم من خلال التدريب المكثف على نماذج الاختبارات الحديثة.",
-    badge: "خبير قدرات",
-    color: "primary",
-    experienceYears: 5
-  },
-  {
-    name: "هاشم السواق",
-    role: "متخصص في مادة الكيمياء",
-    img: "/assets/imgs/هاشم السواق.jpg",
-    subjects: ["كيمياء ثانوي", "تبسيط مفاهيم"],
-    rating: "4.8",
-    students: "3 سنوات خبرة",
-    bio: "يقدّم شرحًا مبسطًا لمادة الكيمياء يساعد الطلاب على فهم الأساسيات بسهولة وتحقيق نتائج أفضل.",
-    badge: "مدرس كيمياء",
-    color: "primary",
-    experienceYears: 3
-  },
-  {
-    name: "محمد علي محجوب",
-    role: "معلم خبير لغة إنجليزية",
-    img: "/assets/imgs/محمد علي محجوب.jpeg",
-    subjects: ["مناهج دولية", "جامعات", "محادثة"],
-    rating: "5.0",
-    students: "20+ سنة خبرة",
-    bio: "يتميز بخبرة طويلة في تعليم اللغة إنجليزية لمختلف الأعمار، ويعتمد على أساليب تفاعلية حديثة.",
-    badge: "خبير إنجليزي",
-    color: "primary",
-    experienceYears: 20
-  },
-  {
-    name: "محمود مسلم",
-    role: "معلم أحياء للمرحلة الثانوية",
-    img: "/assets/imgs/محمود مسلم.jpeg",
-    subjects: ["أحياء", "تحصيلي", "علوم"],
-    rating: "4.9",
-    students: "3 سنوات خبرة",
-    bio: "حاصل على الرخصة المهنية التعليمية تخصص الأحياء، يتميز بمستوى ممتاز في المادة العلمية وشرح التحصيلي لطلاب الثانوي.",
-    badge: "خبير أحياء",
-    color: "primary",
-    experienceYears: 3
-  },
-  {
-    name: "ياسر صابر",
-    role: "معلم متميز",
-    img: "/assets/imgs/ياسر صابر.jpeg",
-    subjects: ["تأسيس", "متابعة"],
-    rating: "4.8",
-    students: "خبرة واسعة",
-    bio: "مدرس خبير يركز على تحسين مستوى الطلاب وتطوير مهاراتهم الدراسية بشكل ملحوظ.",
-    badge: "معلم متميز",
-    color: "primary",
-    experienceYears: 12
-  },
-  {
-    name: "فتوح قطب البسيوني",
-    role: "معلم خبير",
-    img: "/assets/imgs/فتوح قطب البسيوني.jpg",
-    subjects: ["لغة عربية", "تأسيس"],
-    rating: "5.0",
-    students: "خبرة طويلة",
-    bio: "معلم قدير يمتلك سنوات طويلة من الخبرة في التعليم وبناء مهارات الطلاب الأساسية.",
-    badge: "خبير تعليمي",
-    color: "primary",
-    experienceYears: 30
-  }
-];
+// Top 3 teachers by rating + experience
+const topTeachers = [...teachers]
+  .sort((a, b) => b.experienceYears - a.experienceYears || parseFloat(b.rating) - parseFloat(a.rating))
+  .slice(0, 3);
 
 const Teachers = () => {
-  const [activeFilter, setActiveFilter] = useState("الكل");
-  const [showAll, setShowAll] = useState(false);
-  const filters = ["الكل", "تأسيس", "إنجليزي", "قدرات وتحصيلي", "كيمياء وعلوم"];
-
-  // Sort teachers by experienceYears descending
-  const sortedTeachers = [...teachers].sort((a, b) => b.experienceYears - a.experienceYears);
-
-  const filteredTeachers = sortedTeachers.filter((t) => {
-    if (activeFilter === "الكل") return true;
-    if (activeFilter === "قدرات وتحصيلي") return t.subjects.some(s => s.includes("قدرات") || s.includes("تحصيلي"));
-    if (activeFilter === "إنجليزي") return t.subjects.some(s => s.includes("إنجليزي") || s.includes("لغة"));
-    if (activeFilter === "تأسيس") return t.subjects.some(s => s.includes("تأسيس") || s.includes("لغتي"));
-    if (activeFilter === "كيمياء وعلوم") return t.subjects.some(s => s.includes("علوم") || s.includes("كيمياء") || s.includes("أحياء"));
-    return true;
-  });
-
-  const visibleTeachers = showAll ? filteredTeachers : filteredTeachers.slice(0, 6);
-
   return (
-    <section id="teachers" className="py-16 md:py-24 relative overflow-hidden bg-background">
+    <section id="teachers" className="py-20 md:py-32 relative overflow-hidden bg-background">
       <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-section-alt to-transparent" />
-      
+
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-        <div className="text-center mb-12 sm:mb-16">
-          <Badge variant="outline" className="mb-4 border-primary/20 text-primary px-4 py-1">
-            <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+
+        {/* Header */}
+        <div className="text-center mb-14">
+          <Badge variant="outline" className="mb-4 border-primary/20 text-primary px-4 py-1.5 rounded-full bg-primary/5 font-bold">
+            <GraduationCap className="w-3.5 h-3.5 mr-2" />
             نخبة المدرسين
           </Badge>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-foreground mb-4">
-            تعرف على <span className="text-primary">أفضل المدرسين</span> بتبوك
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground mb-4">
+            تعرف على <span className="text-primary">أفضل المدرسين</span>
           </h2>
-          <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto mb-8 sm:mb-12">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
             فريق من المدرسين المؤهلين والمعتمدين — كل واحد منهم قصة نجاح بحد ذاتها
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10 sm:mb-16">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => {
-                  setActiveFilter(filter);
-                  setShowAll(false);
-                }}
-                className={`px-4 py-2 rounded-full text-sm font-bold transition-all cursor-pointer border ${
-                  activeFilter === filter
-                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-                    : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
         </div>
 
-        <motion.div layout className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <AnimatePresence>
-            {visibleTeachers.map((t, i) => (
-              <motion.div
-                layout
-                key={t.name}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                className="group bg-card rounded-3xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10"
-              >
-              <div className="relative h-72 overflow-hidden bg-gradient-to-b from-muted/40 to-muted/20">
+        {/* Top 3 Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {topTeachers.map((t, i) => (
+            <m.div
+              key={t.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.45, delay: i * 0.1 }}
+              className="group bg-card border border-border hover:border-primary/40 rounded-3xl overflow-hidden transition-all duration-400 hover:shadow-2xl hover:shadow-primary/8"
+            >
+              {/* Image */}
+              <div className="relative h-64 bg-gradient-to-b from-muted/40 to-muted/10 overflow-hidden">
                 <Image
                   src={t.img}
                   alt={t.name}
                   fill
                   className="object-contain object-bottom transition-transform duration-500 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
-                <div className="absolute top-4 right-4">
-                  <Badge className="bg-primary/90 backdrop-blur-md border-none px-3 py-1 text-sm font-bold shadow-lg">
-                    {t.badge}
-                  </Badge>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent opacity-70" />
+                {/* #1 crown for first */}
+                {i === 0 && (
+                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-yellow-400/20 border border-yellow-400/40 flex items-center justify-center text-yellow-400 text-sm font-black">
+                    👑
+                  </div>
+                )}
+                <span className="absolute top-3 right-3 bg-primary/90 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full">
+                  {t.badge}
+                </span>
               </div>
 
-              <div className="p-6 sm:p-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full border-2 border-primary/20 overflow-hidden shrink-0 relative">
+              {/* Body */}
+              <div className="p-5">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="relative w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
                     <Image src={t.img} alt="" fill className="object-cover" />
                   </div>
-                  <div className="text-right">
-                    <h4 className="font-black text-lg text-foreground leading-tight">{t.name}</h4>
-                    <span className="text-[10px] text-primary font-bold">{t.role}</span>
+                  <div className="text-right flex-1">
+                    <h3 className="font-black text-foreground text-sm leading-snug">{t.name}</h3>
+                    <p className="text-[10px] text-primary font-bold mt-0.5">{t.role}</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 mb-4 justify-end">
-                  {t.subjects.map((s, j) => (
-                    <span key={j} className="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-muted text-muted-foreground border border-border">
+                <div className="flex flex-wrap gap-1 mb-3 justify-end">
+                  {t.subjects.slice(0, 3).map((s, j) => (
+                    <span key={j} className="text-[9px] font-bold px-2 py-0.5 rounded bg-muted border border-border text-muted-foreground">
                       {s}
                     </span>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 border-y border-border py-3 mb-4 text-center">
+                <div className="grid grid-cols-3 gap-1 bg-muted/30 rounded-xl p-2 mb-4 text-center">
                   <div>
-                    <div className="text-xs font-black flex items-center justify-center gap-1">
-                      {t.rating} <Star className="w-2.5 h-2.5 fill-accent text-accent" />
+                    <div className="text-xs font-black flex items-center justify-center gap-0.5">
+                      {t.rating} <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />
                     </div>
-                    <div className="text-[9px] text-muted-foreground uppercase">التقييم</div>
+                    <div className="text-[8px] text-muted-foreground">تقييم</div>
                   </div>
                   <div className="border-x border-border">
-                    <div className="text-xs font-black">{t.students}</div>
-                    <div className="text-[9px] text-muted-foreground uppercase">الخبرة</div>
+                    <div className="text-xs font-black">{t.experienceYears}س</div>
+                    <div className="text-[8px] text-muted-foreground">خبرة</div>
                   </div>
                   <div>
-                    <div className="text-xs font-black text-primary">★★★★★</div>
-                    <div className="text-[9px] text-muted-foreground uppercase">رضا الأهل</div>
+                    <div className="text-[10px] font-black flex items-center justify-center gap-0.5">
+                      <MapPin className="w-2.5 h-2.5 text-primary" />
+                      {t.city}
+                    </div>
+                    <div className="text-[8px] text-muted-foreground">المدينة</div>
                   </div>
                 </div>
 
-                <p className="text-xs text-muted-foreground mb-6 line-clamp-2 min-h-[32px] text-right">
-                  {t.bio}
-                </p>
-
-                  <Button 
-                    onClick={() => { 
-                      window.history.pushState(null, "", `/?teacher=${encodeURIComponent(t.name)}#register`); 
-                      window.dispatchEvent(new CustomEvent('teacherSelected', { 
-                        detail: { name: t.name, subject: t.subjects[0] } 
-                      }));
-                      document.getElementById("register")?.scrollIntoView({ behavior: "smooth" }); 
-                    }}
-                    className="w-full rounded-xl py-7 sm:py-6 gap-3 font-black shadow-lg shadow-primary/20 bg-primary hover:scale-[1.02] transition-transform text-base sm:text-sm cursor-pointer"
-                  >
-                    <CalendarCheck className="w-5 h-5 sm:w-4 sm:h-4" />
-                    احجز معه الآن
-                  </Button>
+                <button
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent("teacherSelected", { detail: { name: t.name, subject: t.subjects[0] } }));
+                    document.getElementById("register")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-black rounded-xl py-3 text-sm transition-all duration-200 cursor-pointer shadow-sm shadow-primary/20"
+                >
+                  <CalendarCheck className="w-4 h-4" />
+                  احجز معه الآن
+                </button>
               </div>
-            </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+            </m.div>
+          ))}
+        </div>
 
-        {!showAll && filteredTeachers.length > 6 && (
-          <div className="flex justify-center mt-12">
-            <Button
-              onClick={() => setShowAll(true)}
-              variant="outline"
-              className="rounded-full px-12 py-6 border-primary text-primary hover:bg-primary hover:text-white font-black text-lg transition-all duration-300 shadow-xl shadow-primary/10"
-            >
-              عرض المزيد من المدرسين
-            </Button>
-          </div>
-        )}
-
-        {showAll && filteredTeachers.length > 6 && (
-          <div className="flex justify-center mt-12">
-            <Button
-              onClick={() => setShowAll(false)}
-              variant="ghost"
-              className="text-muted-foreground hover:text-primary font-bold"
-            >
-              عرض أقل
-            </Button>
-          </div>
-        )}
-
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           whileInView={{ opacity: 1, y: 0 }}
-           className="mt-12 sm:mt-16 p-6 sm:p-8 rounded-3xl bg-section-alt border border-border flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative"
+        {/* CTA to full page */}
+        <m.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="relative rounded-3xl overflow-hidden border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-8 sm:p-10"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="text-center md:text-right relative z-10">
-             <div className="text-lg sm:text-xl font-black text-foreground mb-1">هل تريد مدرساً بمواصفات معينة؟</div>
-             <div className="text-sm sm:text-base text-muted-foreground">أخبرنا واحنا نلاقيك المدرس المناسب خلال 24 ساعة</div>
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(42,169,224,0.08),transparent_60%)]" />
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-right">
+            <div>
+              <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-2">+70 مدرس بانتظارك</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-foreground mb-2">
+                تصفح جميع المدرسين
+              </h3>
+              <p className="text-muted-foreground text-sm max-w-md">
+                فلتر حسب المدينة والمادة والمرحلة والتقييم وأونلاين/أوفلاين — اعثر على مدرسك المثالي.
+              </p>
+            </div>
+            <Link
+              href="/teachers"
+              className="group flex items-center gap-3 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl px-8 py-4 shadow-lg shadow-primary/25 transition-all hover:-translate-y-0.5 whitespace-nowrap cursor-pointer"
+            >
+              <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+              عرض جميع المدرسين
+            </Link>
           </div>
-          <Button 
-            onClick={() => { document.getElementById("register")?.scrollIntoView({ behavior: "smooth" }); }}
-            size="lg" 
-            className="rounded-full px-10 sm:px-12 py-7 sm:py-7 font-black text-lg bg-foreground text-background hover:bg-foreground/90 relative z-10 w-full md:w-auto cursor-pointer shadow-2xl"
-          >
-            ساعدني أختار المدرس
-          </Button>
-        </motion.div>
+        </m.div>
+
       </div>
     </section>
   );

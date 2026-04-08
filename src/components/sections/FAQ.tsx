@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ChevronDown, HelpCircle, MessageCircleQuestion } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -63,7 +63,7 @@ const FAQ = () => {
             const isActive = activeIndex === index;
 
             return (
-              <motion.div
+              <m.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -88,7 +88,7 @@ const FAQ = () => {
 
                 <AnimatePresence>
                   {isActive && (
-                    <motion.div
+                    <m.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
@@ -98,10 +98,10 @@ const FAQ = () => {
                       <div className="p-5 md:p-6 pt-0 border-t border-border mt-2 text-muted-foreground text-xs md:text-sm leading-relaxed text-right pr-[4.5rem]">
                         {faq.answer}
                       </div>
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
-              </motion.div>
+              </m.div>
             );
           })}
         </div>

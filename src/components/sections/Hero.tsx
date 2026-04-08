@@ -1,169 +1,216 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { CalendarCheck, GraduationCap, Star, Clock } from "lucide-react";
+import { CalendarCheck, GraduationCap, Star, ShieldCheck, MapPin, Users } from "lucide-react";
+
 
 const Hero = () => {
   return (
-    <section className="relative min-h-[80vh] flex items-center pt-32 lg:pt-30 pb-12 lg:pb-16 overflow-hidden">
-      {/* Background Elements */}
+    <section className="relative min-h-[90vh] flex items-center pt-28 sm:pt-32 lg:pt-44 pb-16 overflow-hidden">
+
+      {/* ── Background ── */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,rgba(195,90,40,0.05),transparent_50%)]" />
-        <motion.div 
-          animate={{ y: [0, 40, 0], x: [0, -20, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 right-0 w-72 h-72 md:w-96 md:h-96 bg-primary/10 rounded-full blur-[100px] -mr-32 md:-mr-48" 
-        />
-        <motion.div 
-          animate={{ y: [0, -40, 0], x: [0, 20, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 left-0 w-72 h-72 md:w-96 md:h-96 bg-accent/10 rounded-full blur-[100px] -ml-32 md:-ml-48" 
-        />
+        {/* Grid dots */}
+        <div className="absolute inset-0 bg-[radial-gradient(#2aa9e015_1px,transparent_1px)] [background-size:28px_28px] opacity-60" />
+        {/* Radial hero glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[radial-gradient(ellipse_at_top,rgba(42,169,224,0.08),transparent_65%)]" />
+        {/* Side orbs */}
+        <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-primary/8 rounded-full blur-[120px] -mr-40 animate-float-slow" />
+        <div className="absolute bottom-1/4 left-0 w-[350px] h-[350px] bg-accent/6 rounded-full blur-[100px] -ml-32 animate-float-reverse" />
+        {/* Bottom separator */}
+        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
       </div>
 
       <div className="container max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
+          {/* ── Left: Text Content ── */}
+          <m.div
+            initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-right"
+            transition={{ duration: 0.65, ease: "easeOut" }}
+            className="text-right order-2 lg:order-1"
           >
 
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-black text-foreground leading-[1.2] mb-6 sm:mb-8">
-              درس أبنائك مع <br className="hidden sm:block" />
-              <span className="text-primary glow-text">أفضل المدرسين</span> <br className="sm:hidden" />
-              الخصوصيين في <span className="text-accent relative inline-block">السعودية <div className="absolute -bottom-2 right-0 w-full h-1 bg-accent/30 rounded-full blur-[1px]" /></span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-muted-foreground mb-8 sm:mb-12 max-w-xl mx-auto lg:ml-auto lg:mr-0 text-center lg:text-right leading-relaxed">
-              نضمن لك أفضل الكوادر التعليمية المعتمدة لمتابعة أكاديمية مستمرة ونتائج مضمونة <span className="text-foreground font-black">100%</span>.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-12 sm:mb-16 justify-center lg:justify-end px-4 sm:px-0">
-              <Button 
-                onClick={() => { 
-                  window.dispatchEvent(new CustomEvent('teacherSelected', { detail: { name: '', subject: '' } }));
-                  document.getElementById("register")?.scrollIntoView({ behavior: "smooth" }); 
-                }}
-                size="lg" 
-                className="hidden sm:flex group relative rounded-full px-8 sm:px-10 py-6 sm:py-7 text-base sm:text-lg font-black bg-primary hover:bg-primary/90 shadow-[0_20px_50px_-15px_rgba(199,90,48,0.4)] transition-all hover:translate-y-[-4px] active:translate-y-[0px] overflow-hidden cursor-pointer w-full sm:w-auto"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] transition-transform" />
-                <CalendarCheck className="ml-3 w-5 h-5 sm:w-6 sm:h-6 relative z-10" />
-                <span className="relative z-10">اضمن مستقبل ابنك</span>
-              </Button>
-              <Button 
-                onClick={() => { document.getElementById("teachers")?.scrollIntoView({ behavior: "smooth" }); }}
-                size="lg" 
-                variant="outline" 
-                className="rounded-full px-8 sm:px-10 py-6 sm:py-7 text-base sm:text-lg font-black bg-primary sm:bg-transparent text-primary-foreground sm:text-foreground border-primary sm:border-primary/30 hover:bg-primary/90 sm:hover:bg-primary/5 shadow-[0_15px_40px_-10px_rgba(199,90,48,0.4)] sm:shadow-none cursor-pointer w-full sm:w-auto backdrop-blur-sm transition-all"
-              >
-                <GraduationCap className="ml-3 w-5 h-5 sm:w-6 sm:h-6" />
-                تصفح المدرسين
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-6 sm:pt-8 border-t border-border">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-black text-foreground">+70</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-1">مدرس خبير</div>
-              </div>
-              <div className="text-center border-x border-border">
-                <div className="text-2xl sm:text-3xl font-black text-foreground">+1200</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-1">طالب مستفيد</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-black text-foreground">4.9</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1 mt-1">
-                  تقييم الأهالي <Star className="w-3 h-3 fill-accent text-accent" />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, x: -50 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative lg:block mx-auto w-full max-w-lg mt-8 lg:mt-0"
-          >
-            <div className="relative z-10 p-4 min-h-[350px] sm:min-h-[450px] max-h-[500px] lg:max-h-[600px] flex items-center justify-center">
-              {/* Main Decorative Base */}
-              <div className="absolute w-[70%] h-[70%] lg:w-[80%] lg:h-[80%] bg-gradient-to-br from-primary/20 via-primary/5 to-transparent rounded-full border border-primary/20 shadow-[0_0_80px_rgba(199,90,48,0.15)] overflow-hidden animate-[pulse_4s_easeInOut_infinite]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(199,90,48,0.2),transparent_70%)]" />
-              </div>
-              
-              {/* Complex Rotating Rings */}
-              <div className="absolute w-[90%] h-[90%] lg:w-[100%] lg:h-[100%] border border-primary/10 rounded-full animate-[spin_40s_linear_infinite]" />
-              <div className="absolute w-[80%] h-[80%] lg:w-[90%] lg:h-[90%] border border-accent/10 rounded-full animate-[spin_25s_linear_infinite_reverse] border-dashed" />
-              
-              {/* The Image (Emerging) */}
-              <div className="relative z-20 w-full h-full flex items-end justify-center pt-8 overflow-hidden pointer-events-none">
-                <motion.div
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
+            {/* Headline */}
+            <m.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.6 }}
+              className="text-4xl sm:text-5xl lg:text-[3.5rem] xl:text-6xl font-black text-foreground leading-[1.15] mb-6"
+            >
+              درّس أبناءك مع{" "}
+              <span className="relative inline-block text-primary">
+                أفضل المدرسين
+                <svg
+                  className="absolute -bottom-1 right-0 w-full"
+                  viewBox="0 0 300 10"
+                  fill="none"
                 >
-                  <Image
-                    src="/assets/imgs/male-Photoroom.png"
-                    alt="BeboCademy Education"
-                    width={550}
-                    height={600}
-                    priority
-                    className="w-auto h-auto max-h-[350px] sm:max-h-[450px] lg:max-h-[550px] object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.5)] z-20"
+                  <path
+                    d="M2 7 C70 1, 230 9, 298 5"
+                    stroke="hsl(199,90%,48%)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    opacity="0.6"
                   />
-                </motion.div>
+                </svg>
+              </span>{" "}
+              <br className="hidden sm:block" />
+              الخصوصيين في{" "}
+              <span
+                className="relative inline-block"
+                style={{
+                  background: "linear-gradient(135deg, hsl(199,90%,55%), hsl(199,80%,70%))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                المملكة
+              </span>
+            </m.h1>
+
+            {/* Sub-headline */}
+            <m.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.55 }}
+              className="text-muted-foreground text-base sm:text-lg leading-relaxed mb-8 max-w-lg mr-0 ml-auto lg:ml-0"
+            >
+              نضمن لك أفضل الكوادر التعليمية المعتمدة — منزلياً أو أونلاين — لمتابعة
+              أكاديمية مستمرة ونتائج مضمونة{" "}
+              <strong className="text-foreground">100%</strong>.
+            </m.p>
+
+            {/* CTA Buttons */}
+            <m.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-8 mb-10"
+            >
+              {/* Primary CTA */}
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("teacherSelected", { detail: { name: "", subject: "" } }));
+                  document.getElementById("register")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="group relative flex items-center justify-center gap-3 bg-primary hover:bg-primary/90 text-white font-black rounded-2xl px-10 py-4 text-base shadow-[0_16px_40px_-8px_rgba(42,169,224,0.45)] transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 overflow-hidden cursor-pointer flex-1 sm:flex-none"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <CalendarCheck className="w-5 h-5 relative z-10 shrink-0" />
+                <span className="relative z-10">اضمن مستقبل ابنك</span>
+              </button>
+
+              {/* Secondary CTA */}
+              <button
+                onClick={() => document.getElementById("teachers")?.scrollIntoView({ behavior: "smooth" })}
+                className="flex items-center justify-center gap-3 bg-transparent border border-primary/30 hover:border-primary/60 hover:bg-primary/6 text-foreground font-black rounded-2xl px-10 py-4 text-base transition-all duration-300 cursor-pointer flex-1 sm:flex-none"
+              >
+                <GraduationCap className="w-5 h-5 text-primary shrink-0" />
+                تصفح المدرسين
+              </button>
+            </m.div>
+
+          </m.div>
+
+          {/* ── Right: Visual ── */}
+          <m.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, ease: "easeOut" }}
+            className="relative mx-auto w-full max-w-[480px] order-1 lg:order-2"
+          >
+            {/* Outer Glow Ring */}
+            <div className="absolute inset-0 rounded-full bg-primary/6 blur-3xl scale-110" />
+
+            {/* Rotating decorative rings */}
+            <div className="absolute inset-[5%] rounded-full border border-primary/10 animate-[spin_50s_linear_infinite]" />
+            <div className="absolute inset-[12%] rounded-full border border-dashed border-accent/10 animate-[spin_30s_linear_infinite_reverse]" />
+
+            {/* Glowing base circle */}
+            <div className="relative mx-auto w-[85%] aspect-square rounded-full bg-gradient-to-br from-primary/18 via-primary/6 to-transparent border border-primary/15 shadow-[0_0_80px_rgba(42,169,224,0.12)] flex items-end justify-center overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,rgba(42,169,224,0.15),transparent_60%)]" />
+              <m.div
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
+                className="relative z-10 w-full flex justify-center"
+              >
+                <Image
+                  src="/assets/imgs/male-Photoroom.png"
+                  alt="مُتقن أكاديمي"
+                  width={520}
+                  height={560}
+                  priority
+                  className="w-auto h-auto max-h-[340px] sm:max-h-[420px] lg:max-h-[500px] object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+                />
+              </m.div>
+            </div>
+
+            {/* Floating card — top right: Rating */}
+            <m.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
+              className="absolute top-[8%] -right-4 sm:-right-8 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
+            >
+              <div className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center text-yellow-400 shrink-0">
+                <Star className="w-5 h-5 fill-current" />
               </div>
+              <div className="text-right">
+                <div className="text-[10px] text-muted-foreground font-medium">تقييم ممتاز</div>
+                <div className="text-sm font-black text-foreground">4.9 / 5.0</div>
+              </div>
+            </m.div>
 
-              {/* Floating Status Cards */}
-              <motion.div
-                 animate={{ y: [0, -15, 0], x: [0, 5, 0] }}
-                 transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                 className="absolute top-10 -right-4 sm:-right-8 z-30 bg-card/80 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                  <Star className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">تقييم ممتاز</div>
-                  <div className="text-xs sm:text-sm font-black text-foreground">4.9/5.0</div>
-                </div>
-              </motion.div>
+            {/* Floating card — bottom left: Trusted */}
+            <m.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.8 }}
+              className="absolute bottom-[14%] -left-4 sm:-left-10 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
+            >
+              <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-muted-foreground font-medium">مدرسون موثوقون</div>
+                <div className="text-sm font-black text-foreground">+70 مدرس</div>
+              </div>
+            </m.div>
 
-              <motion.div
-                 animate={{ y: [0, 15, 0], x: [0, -5, 0] }}
-                 transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 }}
-                 className="absolute bottom-20 -left-4 sm:-left-12 z-30 bg-card/80 backdrop-blur-xl p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
-              >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div className="text-right">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">متاح الآن</div>
-                  <div className="text-xs sm:text-sm font-black text-foreground">احجز جلستك</div>
-                </div>
-              </motion.div>
+            {/* Floating card — top left: Cities */}
+            <m.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1.2 }}
+              className="absolute top-[30%] -left-2 sm:-left-6 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-3 py-2.5 shadow-2xl"
+            >
+              <div className="w-8 h-8 rounded-xl bg-green-500/15 flex items-center justify-center text-green-400 shrink-0">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="text-right">
+                <div className="text-[9px] text-muted-foreground">متاح في</div>
+                <div className="text-xs font-black text-foreground">كل المدن</div>
+              </div>
+            </m.div>
 
-              {/* Decorative Glows */}
-              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-48 h-12 bg-primary/30 blur-[40px] -z-10" />
-            </div>
+            {/* Bottom glow */}
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-2/3 h-8 bg-primary/20 blur-2xl" />
+          </m.div>
 
-            {/* Extra Background shapes */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] -z-10 opacity-30">
-               <div className="absolute inset-0 border border-primary/10 rounded-full animate-[spin_35s_linear_infinite]" />
-               <div className="absolute inset-x-20 inset-y-10 border border-accent/10 rounded-3xl rotate-45 animate-[pulse_8s_easeInOut_infinite]" />
-            </div>
-          </motion.div>
         </div>
       </div>
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-primary/40 animate-bounce cursor-pointer opacity-0 lg:opacity-100 transition-opacity"
-           onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>
-        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">اكتشف المزيد</span>
-        <div className="w-[1px] h-12 bg-gradient-to-b from-primary/50 to-transparent" />
+
+      {/* Scroll Indicator */}
+      <div
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer opacity-0 lg:opacity-100 group"
+        onClick={() => document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })}
+      >
+        <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary/40 group-hover:text-primary/70 transition-colors">
+          اكتشف المزيد
+        </span>
+        <div className="w-px h-10 bg-gradient-to-b from-primary/40 to-transparent animate-bounce" />
       </div>
     </section>
   );
