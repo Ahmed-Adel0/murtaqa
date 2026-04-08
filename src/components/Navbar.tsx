@@ -83,6 +83,7 @@ const Navbar = () => {
               { id: "about", label: "من نحن", path: "/#about" },
               { id: "services", label: "خدماتنا", path: "/#services" },
               { id: "teachers", label: "المعلمون", path: "/teachers" },
+              { id: "university", label: "دروس الجامعة", path: "/university" },
             ].map((link) => (
               <Link
                 key={link.id}
@@ -175,6 +176,7 @@ const Navbar = () => {
                   { id: "about", label: "من نحن", path: "/#about" },
                   { id: "services", label: "خدماتنا", path: "/#services" },
                   { id: "teachers", label: "المعلمون", path: "/teachers" },
+                  { id: "university", label: "دروس الجامعة", path: "/university" },
                 ].map((link, i) => (
                   <m.div
                     initial={{ opacity: 0, y: -10 }}
