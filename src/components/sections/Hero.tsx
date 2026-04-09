@@ -121,55 +121,66 @@ const Hero = () => {
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.75, ease: "easeOut" }}
-            className="relative mx-auto w-full max-w-[480px] order-1 lg:order-2"
+            className="relative mx-auto w-full max-w-[420px] order-1 lg:order-2"
           >
-            {/* Outer Glow Ring */}
-            <div className="absolute inset-0 rounded-full bg-primary/6 blur-3xl scale-110" />
+            {/* ── Main card ── */}
+            <div className="relative rounded-3xl overflow-hidden border border-primary/20 shadow-[0_32px_80px_-12px_rgba(42,169,224,0.25)]">
 
-            {/* Rotating decorative rings */}
-            <div className="absolute inset-[5%] rounded-full border border-primary/10 animate-[spin_50s_linear_infinite]" />
-            <div className="absolute inset-[12%] rounded-full border border-dashed border-accent/10 animate-[spin_30s_linear_infinite_reverse]" />
+              {/* Card gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background/60 to-accent/5" />
 
-            {/* Glowing base circle */}
-            <div className="relative mx-auto w-[85%] aspect-square rounded-full bg-gradient-to-br from-primary/18 via-primary/6 to-transparent border border-primary/15 shadow-[0_0_80px_rgba(42,169,224,0.12)] flex items-end justify-center overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_110%,rgba(42,169,224,0.15),transparent_60%)]" />
+              {/* Diagonal decorative stripes */}
+              <div className="absolute inset-0 opacity-[0.04]"
+                style={{
+                  backgroundImage: "repeating-linear-gradient(135deg, hsl(199,90%,55%) 0px, hsl(199,90%,55%) 1px, transparent 1px, transparent 22px)"
+                }}
+              />
+
+              {/* Top glowing bar */}
+              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+
+              {/* Corner accent — top-right */}
+              <div className="absolute top-4 right-4 w-16 h-16 rounded-full bg-primary/10 blur-2xl" />
+              {/* Corner accent — bottom-left */}
+              <div className="absolute bottom-4 left-4 w-20 h-20 rounded-full bg-accent/10 blur-2xl" />
+
+              {/* Image */}
               <m.div
-                initial={{ y: 60, opacity: 0 }}
+                initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
-                className="relative z-10 w-full flex justify-center"
+                className="relative z-10 flex justify-center items-end pt-4 px-4"
               >
                 <Image
-                  src="/assets/imgs/male-Photoroom.png"
-                  alt="مُتقن أكاديمي"
-                  width={520}
-                  height={560}
+                  src="/logos/heroo-Photoroom.png"
+                  alt="عائلة سعيدة مع بيبوكاديمي"
+                  width={600}
+                  height={640}
                   priority
-                  className="w-auto h-auto max-h-[340px] sm:max-h-[420px] lg:max-h-[500px] object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+                  className="w-full max-w-[260px] sm:max-w-[300px] lg:max-w-[320px] h-auto max-h-[360px] lg:max-h-[400px] object-contain drop-shadow-[0_24px_48px_rgba(0,0,0,0.35)]"
                 />
               </m.div>
+
+              {/* Bottom platform band */}
+              <div className="relative z-10 px-5 py-4 border-t border-primary/10 bg-primary/5 backdrop-blur-sm flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-xs text-muted-foreground font-medium">متاح الآن للحجز</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                  ))}
+                  <span className="text-xs font-black text-foreground mr-1">4.9</span>
+                </div>
+              </div>
             </div>
 
-            {/* Floating card — top right: Rating */}
+            {/* Floating card — top-right: Trusted */}
             <m.div
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut" }}
-              className="absolute top-[8%] -right-4 sm:-right-8 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
-            >
-              <div className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center text-yellow-400 shrink-0">
-                <Star className="w-5 h-5 fill-current" />
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] text-muted-foreground font-medium">تقييم ممتاز</div>
-                <div className="text-sm font-black text-foreground">4.9 / 5.0</div>
-              </div>
-            </m.div>
-
-            {/* Floating card — bottom left: Trusted */}
-            <m.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.8 }}
-              className="absolute bottom-[14%] -left-4 sm:-left-10 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
+              className="absolute -top-5 -right-4 sm:-right-8 z-20 flex items-center gap-3 bg-card/95 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
             >
               <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary shrink-0">
                 <ShieldCheck className="w-5 h-5" />
@@ -180,23 +191,38 @@ const Hero = () => {
               </div>
             </m.div>
 
-            {/* Floating card — top left: Cities */}
+            {/* Floating card — mid-left: Cities */}
             <m.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1.2 }}
-              className="absolute top-[30%] -left-2 sm:-left-6 z-20 flex items-center gap-3 bg-card/90 backdrop-blur-xl border border-white/10 rounded-2xl px-3 py-2.5 shadow-2xl"
+              animate={{ y: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.8 }}
+              className="absolute top-[38%] -left-4 sm:-left-10 z-20 flex items-center gap-3 bg-card/95 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
             >
-              <div className="w-8 h-8 rounded-xl bg-green-500/15 flex items-center justify-center text-green-400 shrink-0">
-                <MapPin className="w-4 h-4" />
+              <div className="w-9 h-9 rounded-xl bg-green-500/15 flex items-center justify-center text-green-400 shrink-0">
+                <MapPin className="w-5 h-5" />
               </div>
               <div className="text-right">
-                <div className="text-[9px] text-muted-foreground">متاح في</div>
-                <div className="text-xs font-black text-foreground">كل المدن</div>
+                <div className="text-[10px] text-muted-foreground font-medium">متاح في</div>
+                <div className="text-sm font-black text-foreground">كل المدن</div>
               </div>
             </m.div>
 
-            {/* Bottom glow */}
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-2/3 h-8 bg-primary/20 blur-2xl" />
+            {/* Floating card — bottom-right: Users */}
+            <m.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 1.2 }}
+              className="absolute -bottom-5 -right-4 sm:-right-8 z-20 flex items-center gap-3 bg-card/95 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 shadow-2xl"
+            >
+              <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400 shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-muted-foreground font-medium">أسر راضية</div>
+                <div className="text-sm font-black text-foreground">+200 أسرة</div>
+              </div>
+            </m.div>
+
+            {/* Outer ambient glow */}
+            <div className="absolute -inset-4 -z-10 rounded-3xl bg-primary/6 blur-3xl" />
           </m.div>
 
         </div>
