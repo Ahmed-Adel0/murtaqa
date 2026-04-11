@@ -187,7 +187,7 @@ const Hero = () => {
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground font-medium">مدرسون موثوقون</div>
-                <div className="text-sm font-black text-foreground">+70 مدرس</div>
+                <div className="text-sm font-black text-foreground">+90 مدرس</div>
               </div>
             </m.div>
 

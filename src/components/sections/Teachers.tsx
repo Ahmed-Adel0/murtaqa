@@ -170,7 +170,7 @@ const Teachers = () => {
           <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-right">
             <div>
               <p className="text-[11px] font-black text-primary uppercase tracking-widest mb-2">
-                +70 مدرس بانتظارك
+                +90 مدرس بانتظارك
               </p>
               <h3 className="text-2xl sm:text-3xl font-black text-foreground mb-2">
                 تصفح جميع المدرسين

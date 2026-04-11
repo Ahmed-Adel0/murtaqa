@@ -50,7 +50,7 @@ const RegistrationFormContent = () => {
     e.preventDefault();
     
     // Construct WhatsApp message
-    const message = `السلام عليكم متقن أكاديمي، أود الاستفسار والتسجيل:%0A%0A`
+    const message = `السلام عليكم مرتقى أكاديمي، أود الاستفسار والتسجيل:%0A%0A`
       + `👤 اسم الطالب: ${formData.studentName}%0A`
       + `🎓 المرحلة الدراسية: ${formData.grade}%0A`
       + `📚 المادة/الخدمة المطلوبة: ${formData.subject}%0A`
@@ -89,7 +89,7 @@ const RegistrationFormContent = () => {
               </div>
               <h3 className="text-2xl font-black text-foreground mb-3">تم إرسال طلبك بنجاح!</h3>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                شكراً لثقتكم بمتقن أكاديمي. تم توجيهك للواتساب، وسيقوم فريقنا بمتابعة طلبك فوراً لترتيب موعد الحصة الأولى.
+                شكراً لثقتكم بمرتقى أكاديمي. تم توجيهك للواتساب، وسيقوم فريقنا بمتابعة طلبك فوراً لترتيب موعد الحصة الأولى.
               </p>
               <Button 
                 onClick={() => setSubmitted(false)}
@@ -113,7 +113,7 @@ const RegistrationFormContent = () => {
             احجز مقعدك الآن
           </Badge>
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground mb-4">
-            انضم إلى <span className="text-primary">متقن أكاديمي</span>
+            انضم إلى <span className="text-primary">مرتقى أكاديمي</span>
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto">
             املأ النموذج التالي لنتواصل معك ونحدد خطة تعليمية مخصصة تلبي احتياجات ابنك لضمان التفوق.
@@ -140,7 +140,7 @@ const RegistrationFormContent = () => {
                   required
                   value={formData.studentName}
                   onChange={handleChange}
-                  placeholder="أدخل اسم الطالب المكتمل"
+                  placeholder="أدخل اسم الطالب"
                   className="w-full bg-background border border-border rounded-xl px-4 py-3 sm:py-4 text-right text-sm text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground"
                 />
               </div>

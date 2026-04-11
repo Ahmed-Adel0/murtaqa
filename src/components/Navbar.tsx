@@ -16,7 +16,13 @@ const Navbar = () => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const sections = ["about", "how-it-works", "services", "teachers", "register"];
+    const sections = [
+      "about",
+      "how-it-works",
+      "services",
+      "teachers",
+      "register",
+    ];
     const observerOptions = {
       root: null,
       rootMargin: "-20% 0px -70% 0px",
@@ -40,7 +46,10 @@ const Navbar = () => {
     return () => observer.disconnect();
   }, []);
 
-  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const handleScrollTo = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string,
+  ) => {
     // Only intercept and scroll smoothly if we're already on the homepage
     if (pathname === "/") {
       e.preventDefault();
@@ -58,25 +67,30 @@ const Navbar = () => {
       <div className="fixed top-3 md:top-6 inset-x-0 z-50 flex justify-center px-3 md:px-6 pointer-events-none">
         {/* Mobile-only Background Glow */}
         <div className="absolute top-0 inset-x-0 h-20 bg-gradient-to-b from-primary/10 to-transparent blur-2xl md:hidden -z-10" />
-        
+
         <nav className="glass rounded-full border border-primary/20 px-4 md:px-8 py-2 md:py-3 flex items-center justify-between w-full max-w-7xl shadow-[0_15px_40px_-15px_rgba(199,90,48,0.15)] pointer-events-auto relative overflow-hidden group">
           {/* Brand Spotlight Effect (from Identity Colors) */}
           <div className="absolute -bottom-[2px] left-1/2 -translate-x-1/2 w-2/3 h-1.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <div className="absolute -bottom-[1px] left-1/2 -translate-x-1/2 w-1/2 h-[2px] bg-gradient-to-r from-transparent via-accent/60 to-transparent blur-[0.5px]" />
           <div className="absolute -bottom-[0.5px] left-1/2 -translate-x-1/2 w-1/3 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent" />
-          
+
           <div className="flex items-center gap-2">
-            <Link href="/" onClick={(e) => handleScrollTo(e, "")} className="relative h-9 w-24 md:h-12 md:w-40 transition-transform hover:scale-105 active:scale-95">
+            <Link
+              href="/"
+              onClick={(e) => handleScrollTo(e, "")}
+              className="relative h-9 w-24 md:h-12 md:w-40 transition-transform hover:scale-105 active:scale-95"
+            >
               <Image
-                src="/logos/2-Photoroom.png"
-                alt="مُتقن أكاديمي"
+                src="/logos/Profile-Photoroom.png"
+                alt="مرتقى أكاديمي"
                 fill
+                sizes="(max-width: 768px) 100vw, 440px"
                 className="object-contain"
                 priority
               />
             </Link>
           </div>
-          
+
           <div className="hidden md:flex items-center gap-6 lg:gap-8">
             {[
               { id: "", label: "الرئيسية", path: "/" },
@@ -94,7 +108,9 @@ const Navbar = () => {
                   }
                 }}
                 className={`relative text-sm lg:text-base font-bold transition-all duration-300 cursor-pointer group py-2 ${
-                  activeSection === link.id ? "text-primary" : "text-foreground/80 hover:text-primary"
+                  activeSection === link.id
+                    ? "text-primary"
+                    : "text-foreground/80 hover:text-primary"
                 }`}
               >
                 {link.label}
@@ -106,7 +122,7 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
-            
+
             <div className="flex items-center gap-3 mr-4">
               {/* Teacher Registration Button */}
               <m.button
@@ -120,12 +136,18 @@ const Navbar = () => {
                 <span className="relative z-10">سجل كمعلم</span>
               </m.button>
 
-              <Button 
-                onClick={() => { 
-                  window.dispatchEvent(new CustomEvent('teacherSelected', { detail: { name: '', subject: '' } }));
-                  document.getElementById("register")?.scrollIntoView({ behavior: "smooth" }); 
+              <Button
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("teacherSelected", {
+                      detail: { name: "", subject: "" },
+                    }),
+                  );
+                  document
+                    .getElementById("register")
+                    ?.scrollIntoView({ behavior: "smooth" });
                 }}
-                size="sm" 
+                size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 text-sm font-black shadow-lg shadow-primary/30 cursor-pointer hover:-translate-y-0.5 transition-all"
               >
                 سجل الآن
@@ -133,12 +155,16 @@ const Navbar = () => {
             </div>
           </div>
 
-          <button 
-            className="md:hidden text-foreground p-2 rounded-full hover:bg-primary/5 active:scale-90 transition-transform" 
+          <button
+            className="md:hidden text-foreground p-2 rounded-full hover:bg-primary/5 active:scale-90 transition-transform"
             onClick={() => setOpen(!open)}
             aria-label="Toggle Menu"
           >
-            {open ? <X className="w-5 h-5 text-primary" /> : <Menu className="w-5 h-5" />}
+            {open ? (
+              <X className="w-5 h-5 text-primary" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </button>
         </nav>
 
@@ -162,8 +188,10 @@ const Navbar = () => {
               >
                 {/* Compact Header */}
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">القائمة</span>
-                  <button 
+                  <span className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">
+                    القائمة
+                  </span>
+                  <button
                     onClick={() => setOpen(false)}
                     className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary active:scale-90 transition-transform"
                   >
@@ -176,7 +204,11 @@ const Navbar = () => {
                   { id: "about", label: "من نحن", path: "/#about" },
                   { id: "services", label: "خدماتنا", path: "/#services" },
                   { id: "teachers", label: "المعلمون", path: "/teachers" },
-                  { id: "university", label: "دروس الجامعة", path: "/university" },
+                  {
+                    id: "university",
+                    label: "دروس الجامعة",
+                    path: "/university",
+                  },
                 ].map((link, i) => (
                   <m.div
                     initial={{ opacity: 0, y: -10 }}
@@ -194,16 +226,20 @@ const Navbar = () => {
                         }
                       }}
                       className={`font-bold text-base py-2 flex items-center justify-between border-b border-primary/5 cursor-pointer ${
-                        activeSection === link.id ? "text-primary" : "text-foreground"
+                        activeSection === link.id
+                          ? "text-primary"
+                          : "text-foreground"
                       }`}
                     >
                       {link.label}
-                      {activeSection === link.id && <div className="w-1.5 h-1.5 bg-primary rounded-full" />}
+                      {activeSection === link.id && (
+                        <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                      )}
                     </Link>
                   </m.div>
                 ))}
-                
-                <m.div 
+
+                <m.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.25 }}
@@ -211,24 +247,35 @@ const Navbar = () => {
                 >
                   {/* Mobile: Teacher Registration */}
                   <button
-                    onClick={() => { setOpen(false); setTeacherModalOpen(true); }}
+                    onClick={() => {
+                      setOpen(false);
+                      setTeacherModalOpen(true);
+                    }}
                     className="w-full flex items-center justify-center gap-2 border border-primary/30 text-primary rounded-xl py-3.5 text-sm font-bold cursor-pointer hover:bg-primary/8 transition-all mb-3"
                   >
                     <GraduationCap className="w-4 h-4" />
                     سجل كمعلم
                   </button>
 
-                  <Button 
-                    onClick={() => { 
-                      setOpen(false); 
-                      window.dispatchEvent(new CustomEvent('teacherSelected', { detail: { name: '', subject: '' } }));
-                      document.getElementById("register")?.scrollIntoView({ behavior: "smooth" }); 
+                  <Button
+                    onClick={() => {
+                      setOpen(false);
+                      window.dispatchEvent(
+                        new CustomEvent("teacherSelected", {
+                          detail: { name: "", subject: "" },
+                        }),
+                      );
+                      document
+                        .getElementById("register")
+                        ?.scrollIntoView({ behavior: "smooth" });
                     }}
                     className="bg-primary text-primary-foreground w-full rounded-full py-5 text-base font-black shadow-md shadow-primary/20 cursor-pointer active:scale-95 transition-all"
                   >
                     سجل الآن
                   </Button>
-                  <p className="text-center text-muted-foreground text-[9px] mt-3 font-medium opacity-50">مُتقن أكاديمي</p>
+                  <p className="text-center text-muted-foreground text-[9px] mt-3 font-medium opacity-50">
+                    مُرتقى أكاديمي
+                  </p>
                 </m.div>
               </m.div>
             </m.div>

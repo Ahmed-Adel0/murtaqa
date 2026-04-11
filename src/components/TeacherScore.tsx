@@ -50,7 +50,7 @@ export function ScoreRing({ score, tier }: { score: number; tier: Tier }) {
           <span className={`text-xs font-black ${meta.color}`}>{score}</span>
         </div>
       </div>
-      <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">مُتقن سكور</span>
+      <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">مُرتقى سكور</span>
     </div>
   );
 }
@@ -73,7 +73,7 @@ export function ScoreBreakdown({ t }: { t: Teacher }) {
 
   return (
     <div className="bg-card border border-border rounded-2xl p-4 w-64">
-      <p className="text-xs font-black text-foreground mb-3 text-right">📊 تفاصيل مُتقن سكور</p>
+      <p className="text-xs font-black text-foreground mb-3 text-right">📊 تفاصيل مُرتقى سكور</p>
       <div className="space-y-2">
         {rows.map((r) => (
           <div key={r.label}>
@@ -93,8 +93,8 @@ export function ScoreBreakdown({ t }: { t: Teacher }) {
         ))}
       </div>
       <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
-        <span className="text-sm font-black text-primary">{t.motqenScore} / 100</span>
-        <span className="text-[10px] text-muted-foreground">مُتقن سكور الإجمالي</span>
+        <span className="text-sm font-black text-primary">{t.murtaqaScore} / 100</span>
+        <span className="text-[10px] text-muted-foreground">مُرتقى سكور الإجمالي</span>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 const stats = [
-  { value: "+70",   label: "مدرس معتمد",    icon: <GraduationCap className="w-5 h-5" /> },
+  { value: "+90",   label: "مدرس معتمد",    icon: <GraduationCap className="w-5 h-5" /> },
   { value: "+1200", label: "طالب مستفيد",   icon: <Users className="w-5 h-5" /> },
   { value: "4.9",   label: "تقييم الأهالي", icon: <Star className="w-5 h-5 fill-current" /> },
   { value: "24h",   label: "رد سريع",        icon: <Clock className="w-5 h-5" /> },
@@ -87,7 +87,7 @@ const About = () => {
             </span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            مُتقن أكاديمي منصة سعودية متخصصة في توفير أفضل المدرسين الخصوصيين —
+            مُرتقى أكاديمي منصة سعودية متخصصة في توفير أفضل المدرسين الخصوصيين —
             منزلياً وأونلاين — لجميع المراحل الدراسية.
           </p>
         </m.div>
@@ -186,7 +186,7 @@ const About = () => {
                 ما يميّزنا عن الجميع
               </h3>
               <p className="text-muted-foreground text-sm sm:text-base text-right leading-relaxed">
-                أربعة مبادئ راسخة تجعل تجربتك مع مُتقن فريدة من نوعها.
+                أربعة مبادئ راسخة تجعل تجربتك مع مُرتقى فريدة من نوعها.
               </p>
             </div>
 
@@ -232,7 +232,7 @@ const About = () => {
                 اضمن مستقبل ابنك اليوم
               </h3>
               <p className="text-muted-foreground text-sm">
-                انضم لأكثر من <span className="text-foreground font-bold">1200 أسرة</span> يثقون بمُتقن أكاديمي.
+                انضم لأكثر من <span className="text-foreground font-bold">1200 أسرة</span> يثقون بمُرتقى أكاديمي.
               </p>
             </div>
 

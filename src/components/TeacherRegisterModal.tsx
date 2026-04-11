@@ -75,7 +75,7 @@ export default function TeacherRegisterModal({ isOpen, onClose }: TeacherRegiste
     setErrors({});
 
     const message = encodeURIComponent(
-      `🎓 *طلب تسجيل معلم جديد - مُتقن أكاديمي*\n\n` +
+      `🎓 *طلب تسجيل معلم جديد - مُرتقى أكاديمي*\n\n` +
       `👤 *الاسم:* ${form.name}\n` +
       `📞 *رقم الهاتف:* ${form.phone}\n` +
       `📚 *المادة:* ${form.subject}\n` +
@@ -147,7 +147,7 @@ export default function TeacherRegisterModal({ isOpen, onClose }: TeacherRegiste
                   </div>
                   <div>
                     <h2 className="text-base font-black text-foreground">سجّل كمعلم</h2>
-                    <p className="text-[11px] text-muted-foreground/70 font-medium">انضم إلى فريق مُتقن أكاديمي</p>
+                    <p className="text-[11px] text-muted-foreground/70 font-medium">انضم إلى فريق مُرتقى أكاديمي</p>
                   </div>
                 </div>
                 <button

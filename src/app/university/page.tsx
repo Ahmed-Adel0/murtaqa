@@ -106,8 +106,8 @@ function UniTeacherCard({ t }: { t: (typeof teachers)[0] }) {
             <p className="text-[10px] text-primary font-bold mt-0.5 truncate">{t.role}</p>
           </div>
           <div className="relative shrink-0">
-            <button onClick={() => setShowScore(!showScore)} className="cursor-pointer" title="مُتقن سكور">
-              <ScoreRing score={t.motqenScore} tier={t.tier} />
+            <button onClick={() => setShowScore(!showScore)} className="cursor-pointer" title="مُرتقى سكور">
+              <ScoreRing score={t.murtaqaScore} tier={t.tier} />
             </button>
             <AnimatePresence>
               {showScore && (
@@ -400,7 +400,7 @@ export default function UniversityPage() {
                 <div className="text-right">
                   <span className="text-[11px] font-black text-primary uppercase tracking-widest">خدمة متميزة</span>
                   <h3 className="text-2xl sm:text-3xl font-black text-foreground my-3">
-                    لماذا تختار مُتقن للجامعة؟
+                    لماذا تختار مُرتقى للجامعة؟
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     نتفهم أن مرحلة الجامعة مختلفة ومرهقة — لذلك نوفر مدرسين متخصصين في مواد الجامعة تحديداً وليس فقط المناهج المدرسية.

@@ -35,7 +35,7 @@ interface SearchModalProps {
   onSearch?: (governorate: string, specialty: string) => void;
 }
 
-const STORAGE_KEY = "motqen_search_dismissed";
+const STORAGE_KEY = "murtaqa_search_dismissed";
 
 export default function SearchModal({ onSearch }: SearchModalProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -418,7 +418,7 @@ export default function SearchModal({ onSearch }: SearchModalProps) {
                       {/* Stats */}
                       <div className="grid grid-cols-3 gap-3 w-full">
                         {[
-                          { val: "+70", label: "مدرس متاح" },
+                          { val: "+90", label: "مدرس متاح" },
                           { val: "4.9★", label: "متوسط التقييم" },
                           { val: "24h", label: "رد سريع" },
                         ].map((stat) => (

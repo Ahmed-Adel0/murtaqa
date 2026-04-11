@@ -10,10 +10,11 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: "مُتقن أكاديمي | المنصة الرائدة للتميز التعليمي",
-  description: "المنصة الرائدة للتميز التعليمي في المملكة العربية السعودية، توفر دروساً عالية الجودة مع نخبة من المدرسين المعتمدين.",
+  title: "مُرتقى أكاديمي | المنصة الرائدة للتميز التعليمي",
+  description:
+    "المنصة الرائدة للتميز التعليمي في المملكة العربية السعودية، توفر دروساً عالية الجودة مع نخبة من المدرسين المعتمدين.",
   icons: {
-    icon: "/logos/icon.png",
+    icon: "/logos/Profile.png",
   },
 };
 
@@ -25,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${tajawal.variable} antialiased`}>
       <body className="font-tajawal">
-        <LazyMotion features={domAnimation}>
-          {children}
-        </LazyMotion>
+        <LazyMotion features={domAnimation}>{children}</LazyMotion>
       </body>
     </html>
   );

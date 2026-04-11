@@ -38,9 +38,10 @@ export default function Home() {
             <div className="lg:col-span-2 text-right">
               <div className="relative h-16 w-60 mb-8 ml-auto">
                 <Image
-                  src="/logos/2-Photoroom.png"
-                  alt="مُتقن أكاديمي"
+                  src="/logos/Profile-Photoroom.png"
+                  alt="مُرتقى أكاديمي"
                   fill
+                  sizes="(max-width: 768px) 100vw, 740px"
                   className="object-contain object-right"
                   priority
                 />
@@ -102,7 +103,7 @@ export default function Home() {
 
           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
              <div className="text-muted-foreground/60 text-sm font-medium order-2 md:order-1">
-               جميع الحقوق محفوظة {new Date().getFullYear()} © <span className="text-primary/80">مُتقن أكاديمي</span>
+               جميع الحقوق محفوظة {new Date().getFullYear()} © <span className="text-primary/80">مُرتقى أكاديمي</span>
              </div>
              <div className="flex items-center gap-4 order-1 md:order-2">
                 <div className="h-[1px] w-8 bg-primary/20 hidden sm:block" />
