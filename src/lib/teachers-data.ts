@@ -12,6 +12,7 @@ export type Teacher = {
   badge: string;
   experienceYears: number;
   city: string;
+  phone?: string;
   online: boolean;
   offline: boolean;
   stages: string[];
@@ -38,12 +39,14 @@ export type Teacher = {
 // ──────────────────────────────────────────────────────────
 
 function calcScore(t: Omit<Teacher, "motqenScore" | "tier">): number {
-  const ratingScore   = (parseFloat(t.rating) / 5) * 30;
-  const expScore      = Math.min(t.experienceYears / 30, 1) * 25;
-  const subjectScore  = Math.min(t.subjects.length / 5, 1) * 15;
-  const stageScore    = Math.min(t.stages.length / 4, 1) * 10;
-  const availScore    = (t.online ? 10 : 0) + (t.offline ? 10 : 0);
-  return Math.round(ratingScore + expScore + subjectScore + stageScore + availScore);
+  const ratingScore = (parseFloat(t.rating) / 5) * 30;
+  const expScore = Math.min(t.experienceYears / 30, 1) * 25;
+  const subjectScore = Math.min(t.subjects.length / 5, 1) * 15;
+  const stageScore = Math.min(t.stages.length / 4, 1) * 10;
+  const availScore = (t.online ? 10 : 0) + (t.offline ? 10 : 0);
+  return Math.round(
+    ratingScore + expScore + subjectScore + stageScore + availScore,
+  );
 }
 
 function getTier(score: number): Tier {
@@ -59,7 +62,17 @@ function make(t: Omit<Teacher, "motqenScore" | "tier">): Teacher {
 }
 
 // ──────────────────────────────────────────────────────────
-export const TIER_META: Record<Tier, { label: string; emoji: string; color: string; bg: string; border: string; glow: string }> = {
+export const TIER_META: Record<
+  Tier,
+  {
+    label: string;
+    emoji: string;
+    color: string;
+    bg: string;
+    border: string;
+    glow: string;
+  }
+> = {
   platinum: {
     label: "بلاتيني",
     emoji: "🏆",
@@ -95,11 +108,36 @@ export const TIER_META: Record<Tier, { label: string; emoji: string; color: stri
 };
 
 export const SCORE_CRITERIA = [
-  { label: "تقييم الأهالي",   max: 30, icon: "⭐", desc: "بناءً على تقييمات أولياء الأمور من 5 نجوم" },
-  { label: "سنوات الخبرة",    max: 25, icon: "💼", desc: "أقصى نقاط لـ 30 سنة فأكثر" },
-  { label: "تنوع المواد",    max: 15, icon: "📚", desc: "كلما زادت المواد زادت النقاط (أقصى 5 مواد)" },
-  { label: "تنوع المراحل",   max: 10, icon: "🎓", desc: "من ابتدائي حتى جامعي (أقصى 4 مراحل)" },
-  { label: "التوفر",          max: 20, icon: "💻", desc: "10 نقاط للأونلاين + 10 نقاط للأوفلاين" },
+  {
+    label: "تقييم الأهالي",
+    max: 30,
+    icon: "⭐",
+    desc: "بناءً على تقييمات أولياء الأمور من 5 نجوم",
+  },
+  {
+    label: "سنوات الخبرة",
+    max: 25,
+    icon: "💼",
+    desc: "أقصى نقاط لـ 30 سنة فأكثر",
+  },
+  {
+    label: "تنوع المواد",
+    max: 15,
+    icon: "📚",
+    desc: "كلما زادت المواد زادت النقاط (أقصى 5 مواد)",
+  },
+  {
+    label: "تنوع المراحل",
+    max: 10,
+    icon: "🎓",
+    desc: "من ابتدائي حتى جامعي (أقصى 4 مراحل)",
+  },
+  {
+    label: "التوفر",
+    max: 20,
+    icon: "💻",
+    desc: "10 نقاط للأونلاين + 10 نقاط للأوفلاين",
+  },
 ];
 
 // ──────────────────────────────────────────────────────────
@@ -119,7 +157,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ahmed-antar",
@@ -136,7 +174,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي", "جامعي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "hisham-mohammed",
@@ -153,7 +191,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: false,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-shaarawi",
@@ -170,7 +208,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ismaeel-abdelmoghni",
@@ -187,7 +225,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ibrahim-eid",
@@ -204,7 +242,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: false,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ahmed-ata",
@@ -255,7 +293,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-ali",
@@ -289,7 +327,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "abdelnaser",
@@ -357,7 +395,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "abdelmonem-hossam",
@@ -374,7 +412,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-abdelhakim",
@@ -391,7 +429,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "osama-ali",
@@ -510,7 +548,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: [],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "hany-elawady",
@@ -527,7 +565,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "reda-amar",
@@ -544,7 +582,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: [],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-abdelalim",
@@ -561,7 +599,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: [],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ahmed-el-sayed",
@@ -578,7 +616,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "abdelaziz-ali",
@@ -595,7 +633,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-abdessalam",
@@ -612,7 +650,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-abdelhamid",
@@ -629,7 +667,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ryad-salam",
@@ -646,7 +684,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "abdellatif-shaker",
@@ -663,7 +701,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohammed-moussa",
@@ -680,7 +718,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["متوسط", "ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ahmed-gad",
@@ -697,7 +735,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "khaled-mostafa-ramadan",
@@ -714,7 +752,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohamed-noman",
@@ -731,7 +769,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["KG", "ابتدائي", "متوسط", "ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "mohamed-ahmed-safwat",
@@ -748,7 +786,7 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "tarek-abdelwahab-abdelaziz",
@@ -765,7 +803,7 @@ export const teachers: Teacher[] = [
     online: false,
     offline: true,
     stages: ["ابتدائي", "متوسط", "ثانوي"],
-    gender: "male"
+    gender: "male",
   }),
   make({
     id: "ahmed-abdelkarim-al-zubaidi",
@@ -782,6 +820,230 @@ export const teachers: Teacher[] = [
     online: true,
     offline: true,
     stages: ["ثانوي", "جامعة"],
-    gender: "male"
+    gender: "male",
+  }),
+  // --- Added teachers from user request
+  make({
+    id: "mustafa-awad",
+    name: "مصطفى عوض",
+    role: "معلم دراسات إسلامية + قرآن",
+    img: "/assets/imgs/مصطفى عوض.jpeg",
+    subjects: ["دراسات إسلامية", "قرآن كريم", "تأسيس"],
+    rating: "5.0",
+    students: "",
+    bio: "معلم الدراسات الإسلامية لجميع المراحل الدراسية. معلم للقرآن الكريم بجمعية تحفيظ القرآن الكريم بتبوك. تأسيس الطلاب صغارًا وكبارًا لقراءة كتاب الله تعالى بالقاعدة النورانية.",
+    badge: "",
+    experienceYears: 20,
+    city: "تبوك",
+    online: false,
+    offline: false,
+    stages: ["ابتدائي", "متوسط", "ثانوي", "جامعة"],
+    gender: "male",
+  }),
+  make({
+    id: "mustafa",
+    name: "مصطفى",
+    role: "معلم تاسيس صفوف اوليه و متوسطه بدرس لغتى و انجليزى و رياضيات",
+    img: "/assets/imgs/مصطفى.jpeg",
+    subjects: ["تأسيس", "لغتي", "لغة إنجليزية", "رياضيات"],
+    rating: "5.0",
+    students: "",
+    bio: "معلم تأسيس للصفوف الابتدائية والمتوسطة. دروس حضورية فقط، يتوفر للذهاب إلى منزل الطالب. خبرة 22 سنة.",
+    badge: "",
+    experienceYears: 22,
+    city: "تبوك",
+    online: false,
+    offline: true,
+    stages: ["ابتدائي", "متوسط"],
+    gender: "male",
+  }),
+  make({
+    id: "raft-zakaria",
+    name: "رأفت زكريا",
+    role: "مدرس رياضيات — جميع المراحل والجامعة",
+    img: "/assets/imgs/رأفت زكريا.jpeg",
+    subjects: ["رياضيات"],
+    rating: "5.0",
+    students: "",
+    bio: "ماجستير في الرياضيات. مدرس لجميع المراحل الدراسية والجامعية.",
+    badge: "",
+    experienceYears: 5,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["ابتدائي", "متوسط", "ثانوي", "جامعة"],
+    gender: "male",
+  }),
+  make({
+    id: "nasma",
+    name: "مس نسمه",
+    role: "مدرسة لغة عربية + تأسيس",
+    img: "/assets/imgs/نسمه.jpeg",
+    subjects: ["لغة عربية", "تأسيس"],
+    rating: "5.0",
+    students: "",
+    bio: "دبلومة معلمات وتنمية مهارات، خبرة في تأسيس الطلاب وتعليم اللغة العربية للمناهج المصري والسعودي. منذ 4 سنوات متخصصة في التأسيس.",
+    badge: "",
+    experienceYears: 7,
+    city: "",
+    online: true,
+    offline: true,
+    stages: ["ابتدائي"],
+    gender: "female",
+  }),
+  make({
+    id: "arabic-teacher-unknown",
+    name: "",
+    role: "مدرس لغة عربية — ابتدائي ومتوسط",
+    img: "",
+    subjects: ["لغة عربية"],
+    rating: "5.0",
+    students: "",
+    bio: "خبرة 7 سنوات في تدريس اللغة العربية للمراحل الابتدائية والمتوسطة.",
+    badge: "",
+    experienceYears: 7,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["ابتدائي", "متوسط"],
+    gender: "male",
+  }),
+  make({
+    id: "osama-mohammed-mokhtar",
+    name: "أسامة محمد مختار",
+    role: "مدرس لغة عربية — جميع المراحل",
+    img: "/assets/imgs/أسامة محمد مختار.jpeg",
+    subjects: ["لغة عربية"],
+    rating: "5.0",
+    students: "",
+    bio: "",
+    badge: "",
+    experienceYears: 25,
+    city: "تبوك",
+    online: true,
+    offline: true,
+    stages: ["ابتدائي", "متوسط", "ثانوي"],
+    phone: "0536814973",
+    gender: "male",
+  }),
+  make({
+    id: "ahmed-badr",
+    name: "أحمد بدر",
+    role: "مدرس رياضيات وإحصاء — جامعي",
+    img: "/assets/imgs/احمد بدر.jpeg",
+    subjects: ["رياضيات", "إحصاء"],
+    rating: "5.0",
+    students: "",
+    bio: "تدريس طلاب السنة التحضيرية وكليات العلوم والهندسة وعلوم الحاسب بجامعة تبوك وجامعة الأمير فهد بن سلطان وطلاب نيوم. متخصص في تدريس الرياضيات والإحصاء لطلبة التخصصات العلمية.",
+    badge: "",
+    experienceYears: 17,
+    city: "تبوك",
+    online: false,
+    offline: false,
+    stages: ["جامعة"],
+    gender: "male",
+  }),
+  make({
+    id: "basant-diab",
+    name: "باسنت دياب",
+    role: "دكتورة صحة نفسية وتعديل سلوك",
+    img: "/assets/imgs/باسنت دياب.jpeg",
+    subjects: ["صحة نفسية", "تعديل سلوك", "إرشاد أسري", "تربية خاصة"],
+    rating: "5.0",
+    students: "",
+    bio: "دكتورة متخصصة في الصحة النفسية وتعديل السلوك، تعمل مع الأطفال والمراهقين، وعضو اتحاد المعالجين النفسيين العرب. معتمدة في الكوتشينج من ICF، ولديها خبرة في التدريب والإرشاد الأسري وتقديم البرامج الإعلامية. (السيرة مرفقة بالصورة)",
+    badge: "",
+    experienceYears: 0,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["أطفال", "مراهقين"],
+    gender: "female",
+  }),
+  make({
+    id: "mustafa-kamal-badawi",
+    name: "مصطفى كمال بدوي",
+    role: "مدرس تأسيس صفوف أولية وعليا ومواد المتوسط + لغة عربية + صعوبات تعلم",
+    img: "",
+    subjects: ["لغة عربية", "تأسيس", "تخاطب", "صعوبات تعلم", "تنمية مهارات"],
+    rating: "5.0",
+    students: "",
+    bio: "خبرة 15 سنة في المنهج السعودي، متخصص في تأسيس الطلاب، تعديل السلوك، وصعوبات التعلم، وتنمية المهارات. لديه خبرة في إعداد أبحاث جامعية ودراسات عليا (ماجستير ودكتوراه) في التربية واللغة والصحة النفسية وطرق التدريس.",
+    badge: "",
+    experienceYears: 15,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["ابتدائي", "متوسط"],
+    gender: "male",
+  }),
+  make({
+    id: "hamada-farag",
+    name: "Hamada Farag",
+    role: "مدرس لغة إنجليزية + STEP",
+    img: "/assets/imgs/Hamada farag.jpeg",
+    subjects: ["لغة إنجليزية"],
+    rating: "5.0",
+    students: "",
+    bio: "معلم ومدرب معتمد للغة الإنجليزية. تأسيس من الصفر إلى الاحتراف، دورات STEP، وتحضير جامعي. دروس حضورية أو أونلاين.",
+    badge: "",
+    experienceYears: 20,
+    city: "",
+    online: true,
+    offline: true,
+    stages: ["ثانوي", "جامعة"],
+    gender: "male",
+  }),
+  make({
+    id: "hamouda-mohamed",
+    name: "حمودة محمد حمودة",
+    role: "مدرس لغة عربية + تربية إسلامية",
+    img: "/assets/imgs/حمودة محمد حمودة.jpeg",
+    subjects: ["لغة عربية", "تربية إسلامية", "قرآن كريم"],
+    rating: "5.0",
+    students: "",
+    bio: "معلم أول لغة عربية وتربية إسلامية، متخصص في تأسيس القراءة والكتابة وتحفيظ القرآن بأسلوب مبسط مع متابعة مستمرة. خبرة 14 سنة.",
+    badge: "",
+    experienceYears: 14,
+    city: "تبوك - الفيصلية",
+    online: true,
+    offline: true,
+    stages: ["ابتدائي", "متوسط"],
+    phone: "0551791376",
+    gender: "male",
+  }),
+  make({
+    id: "mustafa-azaldin-ibrahim",
+    name: "مصطفى عزالدين ابراهيم",
+    role: "مدرس رياضيات + قدرات + تحصيلي",
+    img: "/assets/imgs/مصطفى عزالدين.jpeg",
+    subjects: ["رياضيات", "قدرات", "تحصيلي"],
+    rating: "5.0",
+    students: "",
+    bio: "",
+    badge: "",
+    experienceYears: 25,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["ثانوي"],
+    gender: "male",
+  }),
+  make({
+    id: "fawzi-abdelalim",
+    name: "فوزي عبدالعليم محمد مبارك",
+    role: "مدرس محاسبة وعلوم إدارية — جامعي",
+    img: "/assets/imgs/فوزي عبدالعليم.jpeg",
+    subjects: ["محاسبة", "علوم إدارية"],
+    rating: "5.0",
+    students: "",
+    bio: "خبرة 36 سنة في التدريس الجامعي في جميع فروع المحاسبة.",
+    badge: "",
+    experienceYears: 36,
+    city: "",
+    online: false,
+    offline: false,
+    stages: ["جامعة"],
+    gender: "male",
   }),
 ];
