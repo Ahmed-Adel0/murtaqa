@@ -5,7 +5,7 @@ import { Wrench, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-export default function TeachersDirectoryMaintenance() {
+export default function UniversityMaintenance() {
   return (
     <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased flex flex-col items-center justify-center p-6" dir="rtl">
       
@@ -42,7 +42,7 @@ export default function TeachersDirectoryMaintenance() {
           transition={{ delay: 0.2 }}
           className="text-white/40 text-base sm:text-lg md:text-xl mb-10 md:mb-12 leading-relaxed"
         >
-          نعمل حالياً على تطوير تجربة المعلمين وإضافة ميزات جديدة رائعة لنضمن لكم أفضل تجربة تعليمية في المملكة. سنعود قريباً!
+          نعمل حالياً على تطوير تجربة قسم الجامعة وإضافة ميزات جديدة رائعة لنضمن لكم أفضل تجربة تعليمية في المملكة. سنعود قريباً!
         </motion.p>
 
         <motion.div

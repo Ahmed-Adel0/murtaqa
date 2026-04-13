@@ -2,18 +2,58 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, Bell } from "lucide-react";
 import { m, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import TeacherRegisterModal from "@/components/TeacherRegisterModal";
+import { supabase } from "@/lib/supabase";
+import { ShieldCheck, LogOut, LogIn } from "lucide-react";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const [teacherModalOpen, setTeacherModalOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const fetchRoleAndNotifs = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      if (profile) setUserRole(profile.role);
+
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+      
+      setUnreadNotifs(count || 0);
+    };
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchRoleAndNotifs(session.user.id);
+      } else {
+        setUserRole(null);
+        setUnreadNotifs(0);
+      }
+    });
+
+    // Initial check
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) fetchRoleAndNotifs(user.id);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const sections = [
@@ -97,7 +137,7 @@ const Navbar = () => {
               { id: "about", label: "من نحن", path: "/#about" },
               { id: "services", label: "خدماتنا", path: "/#services" },
               { id: "teachers", label: "المعلمون", path: "/teachers" },
-              { id: "university", label: "دروس الجامعة", path: "/university" },
+              { id: "university", label: "دروس الجامعة", path: "/university-maintenance" },
             ].map((link) => (
               <Link
                 key={link.id}
@@ -124,6 +164,34 @@ const Navbar = () => {
             ))}
 
             <div className="flex items-center gap-3 mr-4">
+              {/* Admin Dashboard Button — Golden Style */}
+              {userRole === 'admin' && (
+                <Link href="/admin/applications">
+                  <m.button
+                    whileHover={{ scale: 1.05, y: -1 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-600 text-black px-4 py-2 rounded-full text-sm font-black shadow-[0_4px_20px_-5px_rgba(251,191,36,0.5)] transition-all hover:shadow-amber-500/40"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    لوحة الإدارة
+                  </m.button>
+                </Link>
+              )}
+
+              {/* Notification Bell */}
+              {userRole && (
+                <Link href={userRole === 'admin' ? '/admin/teachers' : '/dashboard/teacher'}>
+                  <div className="relative p-2 text-white/60 hover:text-white transition-colors cursor-pointer group">
+                    <Bell className="w-5 h-5" />
+                    {unreadNotifs > 0 && (
+                      <span className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pulse border-2 border-background">
+                        {unreadNotifs}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              )}
+
               {/* Teacher Registration Button */}
               <m.button
                 whileHover={{ scale: 1.04 }}
@@ -150,8 +218,26 @@ const Navbar = () => {
                 size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 text-sm font-black shadow-lg shadow-primary/30 cursor-pointer hover:-translate-y-0.5 transition-all"
               >
-                سجل الآن
+                احجز الآن
               </Button>
+
+              {userRole && (
+                <button 
+                  onClick={() => supabase.auth.signOut()}
+                  className="p-2 text-white/40 hover:text-red-500 transition-colors"
+                  title="تسجيل الخروج"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              )}
+              {/* {!userRole && (
+                <Link href="/login">
+                  <button className="text-sm font-bold text-white/60 hover:text-white transition-colors flex items-center gap-2">
+                    <LogIn className="w-4 h-4" />
+                    دخول
+                  </button>
+                </Link>
+              )} */}
             </div>
           </div>
 
@@ -207,7 +293,7 @@ const Navbar = () => {
                   {
                     id: "university",
                     label: "دروس الجامعة",
-                    path: "/university",
+                    path: "/university-maintenance",
                   },
                 ].map((link, i) => (
                   <m.div
@@ -245,6 +331,16 @@ const Navbar = () => {
                   transition={{ delay: 0.25 }}
                   className="mt-1"
                 >
+                  {/* Mobile: Admin Dashboard */}
+                  {userRole === 'admin' && (
+                    <Link href="/admin/applications" onClick={() => setOpen(false)}>
+                      <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-amber-600 text-black rounded-xl py-3.5 text-sm font-black mb-3 shadow-lg shadow-amber-500/20">
+                        <ShieldCheck className="w-4 h-4" />
+                        لوحة الإدارة
+                      </button>
+                    </Link>
+                  )}
+
                   {/* Mobile: Teacher Registration */}
                   <button
                     onClick={() => {
@@ -273,6 +369,26 @@ const Navbar = () => {
                   >
                     سجل الآن
                   </Button>
+
+                  {userRole ? (
+                    <button 
+                      onClick={() => {
+                        setOpen(false);
+                        supabase.auth.signOut();
+                      }}
+                      className="w-full flex items-center justify-center gap-2 text-red-400 mt-6 py-2 text-sm font-bold"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      تسجيل الخروج
+                    </button>
+                  ) : (
+                    <Link href="/login" onClick={() => setOpen(false)}>
+                      <button className="w-full flex items-center justify-center gap-2 text-white/60 mt-6 py-2 text-sm font-bold border-t border-white/5 pt-6">
+                        <LogIn className="w-4 h-4" />
+                        تسجيل الدخول
+                      </button>
+                    </Link>
+                  )}
                   <p className="text-center text-muted-foreground text-[9px] mt-3 font-medium opacity-50">
                     مُرتقى أكاديمي
                   </p>
