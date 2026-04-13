@@ -85,7 +85,7 @@ const Teachers = () => {
               <div className="p-5">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="relative w-10 h-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
-                    <Image src={t.img} alt="" fill className="object-cover" />
+                    <Image src={t.img} alt="" fill sizes="40px" className="object-cover" />
                   </div>
                   <div className="text-right flex-1">
                     <h3 className="font-black text-foreground text-sm leading-snug">

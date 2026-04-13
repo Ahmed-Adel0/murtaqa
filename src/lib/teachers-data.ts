@@ -896,7 +896,7 @@ export const teachers: Teacher[] = [
   }),
   make({
     id: "educational-consultant",
-    name: "المستشار التربوي (مصطفى كمال بدوي)",
+    name: "المستشار التربوي",
     role: "خبير تربية خاصة وتأسيس",
     img: "/assets/imgs/educational-consultant.jpeg",
     subjects: ["تأسيس", "صعوبات تعلم", "تربية خاصة", "تخاطب", "محو أمية", "حساب ذهني"],
@@ -1449,7 +1449,7 @@ export const teachers: Teacher[] = [
     id: "mustafa-kamal-badawi",
     name: "مصطفى كمال بدوي",
     role: "مدرس تأسيس صفوف أولية وعليا ومواد المتوسط + لغة عربية + صعوبات تعلم",
-    img: "/assets/imgs/educational-consultant.jpeg",
+    img: "/assets/imgs/mostafa-kamal.jpeg",
     subjects: ["لغة عربية", "تأسيس", "تخاطب", "صعوبات تعلم", "تنمية مهارات"],
     rating: "5.0",
     students: "55+",
