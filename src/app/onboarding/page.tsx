@@ -45,8 +45,6 @@ export default function OnboardingPage() {
     avatar: null,
   });
 
-  const [existingApp, setExistingApp] = useState<any>(null);
-
   useEffect(() => {
     const checkUserAndApp = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -63,52 +61,13 @@ export default function OnboardingPage() {
         .eq('user_id', user.id)
         .maybeSingle();
 
+      // If an application already exists, the /dashboard page owns its
+      // status display (pending/rejected/approved). Send the user there.
       if (app) {
-        setExistingApp(app);
-        
-        if (app.status === 'approved') {
-          router.push("/dashboard/teacher");
-          return;
-        }
-
-        if (app.status === 'pending') {
-          setStep(3);
-          setLoading(false);
-        } else {
-          setLoading(false); // Rejected or other status
-        }
-        
-        // --- Real-time Subscription (Phase 4) ---
-        // Listen for status changes to approved/rejected
-        const channel = supabase
-          .channel(`app-status-${user.id}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'UPDATE',
-              schema: 'public',
-              table: 'teacher_applications',
-              filter: `user_id=eq.${user.id}`
-            },
-            (payload) => {
-              const newStatus = payload.new.status;
-              if (newStatus === 'approved') {
-                // If approved, trigger refresh or redirect
-                router.refresh(); 
-                setTimeout(() => router.push("/dashboard/teacher"), 1000);
-              } else if (newStatus === 'rejected') {
-                setExistingApp(payload.new);
-                setStep(1); 
-              }
-            }
-          )
-          .subscribe();
-
-        return () => {
-          supabase.removeChannel(channel);
-        };
+        router.replace("/dashboard");
+        return;
       }
-      
+
       setLoading(false);
       
       if (user.user_metadata?.avatar_url) {
@@ -212,13 +171,14 @@ export default function OnboardingPage() {
 
       if (appError) throw appError;
 
-      await supabase.from('profiles').update({ 
+      await supabase.from('profiles').update({
         avatar_url: avUrl,
       }).eq('id', user.id);
 
-      setStep(3);
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ أثناء حفظ البيانات");
+      router.replace("/dashboard");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "حدث خطأ أثناء حفظ البيانات";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -418,34 +378,6 @@ export default function OnboardingPage() {
             </motion.div>
           )}
 
-          {step === 3 && (
-            <motion.div 
-              key="step3"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-10"
-              dir="rtl"
-            >
-              <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/30">
-                <CheckCircle2 className="w-10 h-10 text-green-400" />
-              </div>
-              <h2 className="text-3xl font-black mb-4">
-                {existingApp ? "طلبك قيد المراجعة" : "تم الإرسال بنجاح!"}
-              </h2>
-              <p className="text-white/40 leading-relaxed mb-8">
-                {existingApp 
-                  ? "لقد استلمنا طلبك بالفعل وهو الآن بانتظار موافقة الإدارة. سنقوم بتفعيل حسابك فور الانتهاء من التدقيق."
-                  : "شكراً لثقتك. طلبك الآن تحت المراجعة من قبل إدارة مرتقى، سيتم إخطارك فور تفعيل حسابك."
-                }
-              </p>
-              <button 
-                onClick={() => router.push("/")}
-                className="bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl transition-all"
-              >
-                العودة للرئيسية
-              </button>
-            </motion.div>
-          )}
         </AnimatePresence>
       </motion.div>
     </div>

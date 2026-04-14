@@ -30,7 +30,7 @@ export async function createBooking(teacherId: string, teacherName: string) {
       user_id: teacherId,
       title: "طلب حجز جديد 📅",
       message: `قام الطالب ${studentName} بإرسال طلب تواصل معك.`,
-      link: `/dashboard/teacher`, // Redirect to dashboard
+      link: `/dashboard`,
       type: 'booking'
     });
 

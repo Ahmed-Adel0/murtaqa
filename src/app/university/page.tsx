@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { teachers } from "@/lib/teachers-data";
 import { TierBadge, ScoreRing, ScoreBreakdown } from "@/components/TeacherScore";
-import Navbar from "@/components/Navbar";
 
 const RegistrationForm = dynamic(() => import("@/components/sections/RegistrationForm"), { ssr: true });
 
@@ -202,7 +201,6 @@ export default function UniversityPage() {
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen bg-background">
 
         {/* ── HERO SECTION ── */}

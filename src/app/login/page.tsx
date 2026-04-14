@@ -4,7 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -40,39 +40,32 @@ export default function LoginPage() {
       if (loginError) throw loginError;
 
       if (data.user) {
-        // Fetch role from profiles to determine redirect
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile?.role === 'admin') {
-          router.push("/admin/applications");
-        } else {
-          router.push("/onboarding");
-        }
+        router.push("/dashboard");
+        router.refresh();
       }
-    } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول. تحقق من بياناتك.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "فشل تسجيل الدخول. تحقق من بياناتك.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     setLoading(true);
     setError(null);
     try {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/onboarding`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
         },
       });
       if (oauthError) throw oauthError;
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ أثناء الاتصال بجوجل");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "حدث خطأ أثناء الاتصال بجوجل";
+      setError(msg);
       setLoading(false);
     }
   };
@@ -109,6 +102,7 @@ export default function LoginPage() {
 
         <div className="space-y-6">
           <button
+            type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-full bg-white/5 border border-white/10 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all active:scale-[0.98] outline-none"

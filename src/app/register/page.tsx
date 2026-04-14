@@ -4,14 +4,17 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { User, Mail, Lock, Phone, MapPin, UserCheck, Loader2 } from "lucide-react";
+import { User, Mail, Lock, Phone, MapPin, UserCheck, Loader2, GraduationCap, BookOpen } from "lucide-react";
 import Link from "next/link";
+
+type IntendedRole = "student" | "teacher";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [intendedRole, setIntendedRole] = useState<IntendedRole>("student");
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -19,27 +22,40 @@ export default function RegisterPage() {
     password: "",
     phone: "",
     city: "",
-    role: "teacher", // Default to teacher for this flow
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGoogleSignup = async () => {
+  const postSignupRedirect = () => {
+    const target = intendedRole === "teacher" ? "/onboarding" : "/dashboard";
+    // router.refresh() forces the RSC tree (middleware + /dashboard) to re-evaluate
+    // with the freshly-set session cookies.
+    router.push(target);
+    router.refresh();
+  };
+
+  const handleGoogleSignup = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
     setLoading(true);
     setError(null);
     try {
+      if (typeof document !== "undefined") {
+        document.cookie = `intended_role=${intendedRole}; path=/; max-age=600; samesite=lax`;
+      }
+      const next = intendedRole === "teacher" ? "/onboarding" : "/dashboard";
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/onboarding`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (oauthError) throw oauthError;
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ أثناء الاتصال بجوجل");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "حدث خطأ أثناء الاتصال بجوجل";
+      setError(msg);
       setLoading(false);
     }
   };
@@ -50,7 +66,7 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const { data, error: signupError } = await supabase.auth.signUp({
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -58,78 +74,112 @@ export default function RegisterPage() {
             full_name: formData.fullName,
             phone: formData.phone,
             city: formData.city,
-            role: formData.role,
+            intended_role: intendedRole,
           },
         },
       });
 
       if (signupError) throw signupError;
+      if (!signupData.user) throw new Error("لم يتم إنشاء الحساب");
 
-      if (data.user) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/onboarding");
-        }, 2000);
+      // Supabase often returns { user, session: null } on signup — the session
+      // is not established until the user logs in (even when email auto-confirm
+      // is on). Without this, redirecting to /dashboard would bounce back to
+      // /login. Explicitly log in to create the session cookie.
+      if (!signupData.session) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (loginError) {
+          // Most common cause: the project requires email confirmation.
+          throw new Error(
+            "تم إنشاء الحساب، ولكن يجب تأكيد البريد الإلكتروني قبل تسجيل الدخول. تفقد بريدك."
+          );
+        }
       }
-    } catch (err: any) {
-      setError(err.message || "حدث خطأ أثناء التسجيل");
+
+      setSuccess(true);
+      setTimeout(postSignupRedirect, 900);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "حدث خطأ أثناء التسجيل";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const isTeacher = intendedRole === "teacher";
+
   return (
     <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center p-6 font-tajawal antialiased text-white">
-      {/* Background Glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px]" />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-lg bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl relative z-10"
       >
-        <div className="text-center mb-8">
-          <motion.h1 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2"
-          >
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
             انضم إلى أكاديمية مرتقى
-          </motion.h1>
-          <p className="text-white/40 text-sm">ابدأ رحلتك كمعلم متميز وشارك معرفتك مع العالم</p>
+          </h1>
+          <p className="text-white/40 text-sm">
+            {isTeacher ? "أنشئ حسابك كمعلم وشارك معرفتك" : "أنشئ حسابك كطالب لتبدأ رحلتك التعليمية"}
+          </p>
+        </div>
+
+        {/* Role toggle */}
+        <div className="grid grid-cols-2 gap-2 p-1 bg-white/[0.04] border border-white/10 rounded-2xl mb-6" dir="rtl">
+          <button
+            type="button"
+            onClick={() => setIntendedRole("student")}
+            className={`relative py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              !isTeacher ? "bg-white text-black shadow" : "text-white/60 hover:text-white"
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            طالب
+          </button>
+          <button
+            type="button"
+            onClick={() => setIntendedRole("teacher")}
+            className={`relative py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+              isTeacher ? "bg-white text-black shadow" : "text-white/60 hover:text-white"
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            معلم
+          </button>
         </div>
 
         {error && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm flex items-center gap-3 font-arabic"
             dir="rtl"
           >
             <div className="w-2 h-2 rounded-full bg-red-500" />
             {error}
-          </motion.div>
+          </div>
         )}
 
         {success ? (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="py-12 text-center"
-          >
+          <div className="py-12 text-center">
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/30">
               <UserCheck className="text-green-400 w-8 h-8" />
             </div>
             <h2 className="text-xl font-bold text-green-400 mb-2 font-arabic">تم التسجيل بنجاح!</h2>
-            <p className="text-white/40 text-sm font-arabic">جاري توجيهك للمرحلة التالية...</p>
-          </motion.div>
+            <p className="text-white/40 text-sm font-arabic">
+              {isTeacher ? "جاري توجيهك لإكمال طلب الانضمام..." : "جاري توجيهك إلى لوحة التحكم..."}
+            </p>
+          </div>
         ) : (
           <div className="space-y-6">
             <button
+              type="button"
               onClick={handleGoogleSignup}
               disabled={loading}
               className="w-full bg-white/5 border border-white/10 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all active:scale-[0.98] outline-none"
@@ -167,11 +217,13 @@ export default function RegisterPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-white/60 mr-1">رقم الجوال</label>
+                  <label className="text-xs font-medium text-white/60 mr-1">
+                    رقم الجوال {!isTeacher && <span className="opacity-50">(اختياري)</span>}
+                  </label>
                   <div className="relative group">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
                     <input
-                      required
+                      required={isTeacher}
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
@@ -199,11 +251,13 @@ export default function RegisterPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-white/60 mr-1">المدينة</label>
+                  <label className="text-xs font-medium text-white/60 mr-1">
+                    المدينة {!isTeacher && <span className="opacity-50">(لأفضل توصية)</span>}
+                  </label>
                   <div className="relative group">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
                     <input
-                      required
+                      required={isTeacher}
                       name="city"
                       value={formData.city}
                       onChange={handleInputChange}
@@ -222,6 +276,7 @@ export default function RegisterPage() {
                       value={formData.password}
                       onChange={handleInputChange}
                       type="password"
+                      minLength={6}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-10 outline-none focus:border-blue-500/50 transition-all text-sm"
                     />
                   </div>
@@ -231,9 +286,9 @@ export default function RegisterPage() {
               <button
                 disabled={loading}
                 type="submit"
-                className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-white/90 active:scale-[0.98] transition-all mt-6 flex items-center justify-center gap-2 group"
+                className="w-full bg-white text-black font-bold py-4 rounded-2xl hover:bg-white/90 active:scale-[0.98] transition-all mt-6 flex items-center justify-center gap-2 group disabled:opacity-60"
               >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "إنشاء الحساب"}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : isTeacher ? "إنشاء حساب معلم" : "إنشاء حساب طالب"}
               </button>
             </form>
 

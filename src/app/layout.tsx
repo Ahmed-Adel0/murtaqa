@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Tajawal } from "next/font/google";
 import "./globals.css";
 import { LazyMotion, domAnimation } from "framer-motion";
+import Navbar from "@/components/Navbar";
 
 const tajawal = Tajawal({
   subsets: ["arabic"],
@@ -26,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${tajawal.variable} antialiased`}>
       <body className="font-tajawal" suppressHydrationWarning>
-        <LazyMotion features={domAnimation}>{children}</LazyMotion>
+        <LazyMotion features={domAnimation}>
+          <Navbar />
+          {children}
+        </LazyMotion>
       </body>
     </html>
   );
