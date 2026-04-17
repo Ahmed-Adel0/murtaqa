@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SAUDI_REGIONS } from "@/lib/constants/locations";
 
 type IntendedRole = "student" | "teacher";
 
@@ -260,8 +261,26 @@ export default function RegisterPage() {
                     required minLength={6} value={formData.password} onChange={handleInputChange} placeholder="6 أحرف على الأقل" />
                 </div>
 
-                <InputField icon={<MapPin className="w-4 h-4" />} label="المدينة"
-                  name="city" required value={formData.city} onChange={handleInputChange} placeholder="مثال: الرياض" />
+                {/* City — dropdown with regions */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white/50">المدينة <span className="text-red-400">*</span></label>
+                  <div className="relative group">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-blue-400 transition-colors" />
+                    <select required name="city" value={formData.city}
+                      onChange={(e) => setFormData((p) => ({ ...p, city: e.target.value }))}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 px-5 pl-12 outline-none focus:border-blue-500/50 transition-all text-sm appearance-none cursor-pointer"
+                      dir="rtl">
+                      <option value="">اختر مدينتك</option>
+                      {SAUDI_REGIONS.map((region) => (
+                        <optgroup key={region.region} label={region.region}>
+                          {region.cities.map((c) => (
+                            <option key={c.value} value={c.label}>{c.label}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
                 <button disabled={loading || usernameStatus === "taken"} type="submit"
                   className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-white/90 active:scale-[0.98] transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-60">

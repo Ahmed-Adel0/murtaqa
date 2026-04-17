@@ -17,6 +17,7 @@ import { searchTeachers } from "@/actions/search";
 import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
 import type { GradeLevel } from "@/lib/constants/grade-levels";
 import { getSubjectsForGrade, SUBJECTS } from "@/lib/constants/subjects";
+import { SAUDI_REGIONS, getNeighborhoods } from "@/lib/constants/locations";
 import { AvailabilityDisplay } from "@/components/shared/AvailabilityDisplay";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 
@@ -134,13 +135,24 @@ export default function AdminSearchPage() {
               <label className="text-xs font-bold text-white/40 flex items-center gap-1">
                 <MapPin className="w-3 h-3" /> المدينة
               </label>
-              <input
-                type="text"
-                placeholder="مثال: تبوك"
-                value={filters.city}
-                onChange={(e) => setFilters((f) => ({ ...f, city: e.target.value }))}
-                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-blue-500"
-              />
+              <div className="relative">
+                <select
+                  value={filters.city}
+                  onChange={(e) => setFilters((f) => ({ ...f, city: e.target.value, district: "" }))}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                  dir="rtl"
+                >
+                  <option value="">الكل</option>
+                  {SAUDI_REGIONS.map((region) => (
+                    <optgroup key={region.region} label={region.region}>
+                      {region.cities.map((c) => (
+                        <option key={c.value} value={c.label}>{c.label}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+                <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+              </div>
             </div>
 
             {/* Day of Week */}
@@ -185,18 +197,44 @@ export default function AdminSearchPage() {
             </div>
           </div>
 
-          {/* District */}
+          {/* District — filtered by selected city */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-white/40 flex items-center gap-1">
               <MapPin className="w-3 h-3" /> الحي
+              {filters.city && <span className="text-[10px] text-white/20">(في {filters.city})</span>}
             </label>
-            <input
-              type="text"
-              placeholder="مثال: المروج"
-              value={filters.district}
-              onChange={(e) => setFilters((f) => ({ ...f, district: e.target.value }))}
-              className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-blue-500"
-            />
+            {(() => {
+              const cityEntry = SAUDI_REGIONS.flatMap((r) => r.cities).find((c) => c.label === filters.city);
+              const neighborhoods = cityEntry ? getNeighborhoods(cityEntry.value) : [];
+              if (neighborhoods.length > 0) {
+                return (
+                  <div className="relative">
+                    <select
+                      value={filters.district}
+                      onChange={(e) => setFilters((f) => ({ ...f, district: e.target.value }))}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-blue-500 appearance-none cursor-pointer"
+                      dir="rtl"
+                    >
+                      <option value="">الكل</option>
+                      {neighborhoods.map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
+                  </div>
+                );
+              }
+              return (
+                <input
+                  type="text"
+                  placeholder={filters.city ? "اكتب الحي" : "اختر مدينة أولاً"}
+                  value={filters.district}
+                  onChange={(e) => setFilters((f) => ({ ...f, district: e.target.value }))}
+                  disabled={!filters.city}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:border-blue-500 disabled:opacity-50"
+                />
+              );
+            })()}
           </div>
 
           <button

@@ -34,6 +34,7 @@ import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
 import type { GradeLevel } from "@/lib/constants/grade-levels";
 import { getSubjectsForGrade, SUBJECTS } from "@/lib/constants/subjects";
 import { BANK_ACCOUNTS } from "@/lib/constants/bank-accounts";
+import { SAUDI_REGIONS } from "@/lib/constants/locations";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { DashboardLayout } from "./shared/DashboardLayout";
 import type { SidebarItem } from "./shared/Sidebar";
@@ -400,8 +401,18 @@ function IntakeForm({ onComplete, profile }: { onComplete: () => void; profile?:
                   <label className="text-xs font-bold text-white/40">المدينة (اختياري)</label>
                   <div className="relative">
                     <MapPinned className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                    <input type="text" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                      placeholder="مثال: تبوك" className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-blue-500 outline-none transition-all font-bold text-sm" />
+                    <select value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-blue-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
+                      dir="rtl">
+                      <option value="">اختر مدينتك</option>
+                      {SAUDI_REGIONS.map((region) => (
+                        <optgroup key={region.region} label={region.region}>
+                          {region.cities.map((c) => (
+                            <option key={c.value} value={c.label}>{c.label}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -869,7 +880,28 @@ function SettingsSection({ profile }: { profile: Profile }) {
     <form onSubmit={save} className="bg-white/5 border border-white/10 rounded-[28px] p-6 md:p-8 space-y-5">
       <SettingsField icon={<User className="w-4 h-4" />} label="الاسم الكامل" value={form.full_name} onChange={(v) => setForm((f) => ({ ...f, full_name: v }))} />
       <SettingsField icon={<Phone className="w-4 h-4" />} label="رقم الجوال" value={form.phone} onChange={(v) => setForm((f) => ({ ...f, phone: v }))} type="tel" />
-      <SettingsField icon={<MapPinned className="w-4 h-4" />} label="المدينة" value={form.city} onChange={(v) => setForm((f) => ({ ...f, city: v }))} />
+      {/* City — dropdown with regions */}
+      <div className="space-y-2">
+        <label className="text-xs font-black text-white/40 uppercase tracking-widest">المدينة</label>
+        <div className="relative">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">
+            <MapPinned className="w-4 h-4" />
+          </div>
+          <select value={form.city}
+            onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+            className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-blue-500 outline-none transition-all font-bold text-sm appearance-none cursor-pointer"
+            dir="rtl">
+            <option value="">اختر مدينتك</option>
+            {SAUDI_REGIONS.map((region) => (
+              <optgroup key={region.region} label={region.region}>
+                {region.cities.map((c) => (
+                  <option key={c.value} value={c.label}>{c.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {message && (
         <div className={`p-3 rounded-xl text-sm font-bold text-center ${

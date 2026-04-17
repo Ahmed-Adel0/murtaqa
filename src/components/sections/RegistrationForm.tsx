@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
 import type { GradeLevel } from "@/lib/constants/grade-levels";
 import { getSubjectsForGrade, SUBJECTS } from "@/lib/constants/subjects";
+import { SAUDI_REGIONS } from "@/lib/constants/locations";
 
 const RegistrationFormContent = () => {
   const searchParams = useSearchParams();
@@ -247,20 +248,31 @@ const RegistrationFormContent = () => {
                 </div>
               </FormField>
 
-              {/* City */}
+              {/* City — grouped by region */}
               <FormField
                 icon={<MapPin className="w-4 h-4" />}
                 label="المدينة"
                 hint="اختياري"
               >
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  placeholder="مثال: الرياض، جدة، تبوك..."
-                  className="form-input"
-                />
+                <div className="relative">
+                  <select
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="form-input appearance-none cursor-pointer"
+                    dir="rtl"
+                  >
+                    <option value="">اختر مدينتك</option>
+                    {SAUDI_REGIONS.map((region) => (
+                      <optgroup key={region.region} label={region.region}>
+                        {region.cities.map((c) => (
+                          <option key={c.value} value={c.label}>{c.label}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none" />
+                </div>
               </FormField>
             </div>
 
