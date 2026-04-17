@@ -23,7 +23,7 @@ export function DashboardLayout({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-8" dir="rtl">
       <div
         className="absolute inset-0 pointer-events-none overflow-hidden"
         aria-hidden

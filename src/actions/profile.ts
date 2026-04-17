@@ -8,6 +8,7 @@ export async function updateOwnProfile(input: {
   phone?: string;
   city?: string;
   avatar_url?: string;
+  grade_level?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -18,11 +19,22 @@ export async function updateOwnProfile(input: {
   if (input.phone !== undefined) payload.phone = input.phone;
   if (input.city !== undefined) payload.city = input.city;
   if (input.avatar_url !== undefined) payload.avatar_url = input.avatar_url;
+  if (input.grade_level !== undefined) payload.grade_level = input.grade_level;
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("profiles")
     .update(payload)
     .eq("id", user.id);
+
+  // If grade_level column doesn't exist yet, retry without it
+  if (error && error.code === "PGRST204" && payload.grade_level !== undefined) {
+    delete payload.grade_level;
+    const retry = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", user.id);
+    error = retry.error;
+  }
 
   if (error) return { success: false, error: error.message };
 

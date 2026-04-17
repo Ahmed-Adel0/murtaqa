@@ -82,25 +82,35 @@ export default function RegisterPage() {
       if (signupError) throw signupError;
       if (!signupData.user) throw new Error("لم يتم إنشاء الحساب");
 
-      // Supabase often returns { user, session: null } on signup — the session
-      // is not established until the user logs in (even when email auto-confirm
-      // is on). Without this, redirecting to /dashboard would bounce back to
-      // /login. Explicitly log in to create the session cookie.
-      if (!signupData.session) {
-        const { error: loginError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (loginError) {
-          // Most common cause: the project requires email confirmation.
-          throw new Error(
-            "تم إنشاء الحساب، ولكن يجب تأكيد البريد الإلكتروني قبل تسجيل الدخول. تفقد بريدك."
-          );
-        }
-      }
+      // Store intended role for redirect after verification
+      localStorage.setItem("verify_email", formData.email);
+      localStorage.setItem("intended_role", intendedRole);
 
-      setSuccess(true);
-      setTimeout(postSignupRedirect, 900);
+      // Check if email is already confirmed (auto-confirm ON in Supabase)
+      const isAlreadyVerified = !!signupData.user.email_confirmed_at;
+
+      if (isAlreadyVerified) {
+        // Auto-confirm is ON — user has a session immediately.
+        // If no session yet, sign in explicitly.
+        if (!signupData.session) {
+          await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+          });
+        }
+        setSuccess(true);
+        const target = intendedRole === "teacher" ? "/onboarding" : "/dashboard";
+        setTimeout(() => {
+          router.push(target);
+          router.refresh();
+        }, 900);
+      } else {
+        // Auto-confirm is OFF — redirect to email verification page
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/verify-email");
+        }, 900);
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "حدث خطأ أثناء التسجيل";
       setError(msg);
@@ -173,7 +183,7 @@ export default function RegisterPage() {
             </div>
             <h2 className="text-xl font-bold text-green-400 mb-2 font-arabic">تم التسجيل بنجاح!</h2>
             <p className="text-white/40 text-sm font-arabic">
-              {isTeacher ? "جاري توجيهك لإكمال طلب الانضمام..." : "جاري توجيهك إلى لوحة التحكم..."}
+              {isTeacher ? "جاري توجيهك لإكمال طلب الانضمام..." : "جاري توجيهك..."}
             </p>
           </div>
         ) : (

@@ -1,32 +1,39 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Users, 
-  Search, 
-  MapPin, 
-  Eye, 
-  EyeOff, 
-  ShieldAlert, 
-  ShieldCheck, 
+import {
+  Users,
+  Search,
+  MapPin,
+  Eye,
+  EyeOff,
+  ShieldAlert,
+  ShieldCheck,
   MoreVertical,
   ArrowRight,
   Loader2,
   Mail,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { deleteTeacherAccount } from "@/actions/admin";
 import { Trash2 } from "lucide-react";
 
+const PAGE_SIZE = 10;
+
 export default function AdminTeachersPage() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, active, suspended, hidden
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchTeachers();
@@ -101,19 +108,32 @@ export default function AdminTeachersPage() {
     setLoading(false);
   };
 
-  const filteredTeachers = teachers.filter(t => {
-    const matchesSearch = t.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          t.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (filter === "suspended") return matchesSearch && t.profiles?.is_suspended;
-    if (filter === "hidden") return matchesSearch && t.is_hidden;
-    if (filter === "active") return matchesSearch && !t.profiles?.is_suspended && !t.is_hidden;
-    
-    return matchesSearch;
-  });
+  const filteredTeachers = useMemo(() => {
+    return teachers.filter(t => {
+      const matchesSearch = t.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            t.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (filter === "suspended") return matchesSearch && t.profiles?.is_suspended;
+      if (filter === "hidden") return matchesSearch && t.is_hidden;
+      if (filter === "active") return matchesSearch && !t.profiles?.is_suspended && !t.is_hidden;
+
+      return matchesSearch;
+    });
+  }, [teachers, searchTerm, filter]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredTeachers.length / PAGE_SIZE));
+  const paginatedTeachers = filteredTeachers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased p-8" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-20 p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         
         {/* Breadcrumbs & Header */}
@@ -177,7 +197,7 @@ export default function AdminTeachersPage() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   <AnimatePresence mode="popLayout">
-                    {filteredTeachers.map((teacher) => (
+                    {paginatedTeachers.map((teacher) => (
                       <motion.tr 
                         layout
                         initial={{ opacity: 0 }}
@@ -276,7 +296,7 @@ export default function AdminTeachersPage() {
                 </tbody>
               </table>
               
-              {filteredTeachers.length === 0 && (
+              {paginatedTeachers.length === 0 && (
                 <div className="text-center py-32 space-y-4">
                    <Users className="w-12 h-12 text-white/10 mx-auto" />
                    <p className="text-white/40 font-bold">لم يتم العثور على معلمين يطابقون بحثك</p>
@@ -285,6 +305,75 @@ export default function AdminTeachersPage() {
             </div>
           )}
         </div>
+
+        {/* Pagination */}
+        {filteredTeachers.length > PAGE_SIZE && (
+          <div className="mt-6 flex items-center justify-between px-2">
+            <p className="text-xs text-white/30 font-bold">
+              عرض {(currentPage - 1) * PAGE_SIZE + 1} - {Math.min(currentPage * PAGE_SIZE, filteredTeachers.length)} من {filteredTeachers.length} معلم
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                title="الصفحة الأولى"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                title="الصفحة السابقة"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  item === "..." ? (
+                    <span key={`dots-${idx}`} className="px-2 text-white/20 text-sm">...</span>
+                  ) : (
+                    <button
+                      key={item}
+                      onClick={() => setCurrentPage(item as number)}
+                      className={`min-w-[36px] h-9 rounded-xl text-sm font-bold transition-all ${
+                        currentPage === item
+                          ? "bg-blue-600 text-white border border-blue-500"
+                          : "bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                title="الصفحة التالية"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                title="الصفحة الأخيرة"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Info Footer */}
         <div className="mt-8 flex items-center gap-3 text-white/20 text-xs px-4">

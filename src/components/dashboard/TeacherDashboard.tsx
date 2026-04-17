@@ -10,6 +10,8 @@ import {
   DollarSign,
   BookOpen,
   MapPin,
+  Clock,
+  GraduationCap,
   Eye,
   EyeOff,
   Save,
@@ -29,10 +31,16 @@ import {
 import { supabase } from "@/lib/supabase";
 import { deleteOwnAccount } from "@/actions/admin";
 import type { Profile } from "@/lib/types";
+import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
+import type { GradeLevel } from "@/lib/constants/grade-levels";
+import { getSubjectsForGrades } from "@/lib/constants/subjects";
+import { SAUDI_REGIONS, getNeighborhoods } from "@/lib/constants/locations";
 import { DashboardLayout } from "./shared/DashboardLayout";
 import type { SidebarItem } from "./shared/Sidebar";
 
-type Section = "profile" | "reviews" | "notifications" | "bookings";
+import AvailabilityManager from "./teacher/AvailabilityManager";
+
+type Section = "profile" | "reviews" | "notifications" | "bookings" | "availability" | "meetings";
 
 type ProfileState = {
   full_name: string;
@@ -40,6 +48,7 @@ type ProfileState = {
   subjects: string[];
   hourly_rate: number;
   districts: string[];
+  grade_levels: string[];
   bio: string;
   is_published: boolean;
   avatar_url: string;
@@ -70,17 +79,6 @@ type BookingRow = {
   status?: string | null;
 };
 
-const DISTRICTS = [
-  "المروج",
-  "العليا",
-  "القادسية",
-  "المصيف",
-  "الروضة",
-  "التعاون",
-  "النهضة",
-  "الياسمين",
-];
-
 export default function TeacherDashboard({ profile: baseProfile }: { profile?: Profile } = {}) {
   const [section, setSection] = useState<Section>("profile");
   const [loading, setLoading] = useState(true);
@@ -90,6 +88,7 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
     subjects: [],
     hourly_rate: 0,
     districts: [],
+    grade_levels: [],
     bio: "",
     is_published: false,
     avatar_url: "",
@@ -142,6 +141,7 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
           subjects: pubProf?.subjects ?? [],
           hourly_rate: pubProf?.hourly_rate ?? 0,
           districts: pubProf?.districts ?? [],
+          grade_levels: pubProf?.grade_levels ?? [],
           bio: pubProf?.bio ?? "",
           is_published: pubProf?.is_published ?? false,
           certificates: pubProf?.certificates ?? [],
@@ -174,11 +174,23 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
         onSelect: () => setSection("profile"),
       },
       {
+        id: "availability",
+        label: "الأوقات المتاحة",
+        icon: <Clock className="w-5 h-5" />,
+        onSelect: () => setSection("availability"),
+      },
+      {
         id: "bookings",
         label: "الحجوزات",
         icon: <CalendarCheck className="w-5 h-5" />,
         onSelect: () => setSection("bookings"),
         badge: stats.bookings || undefined,
+      },
+      {
+        id: "meetings",
+        label: "الحصص",
+        icon: <GraduationCap className="w-5 h-5" />,
+        onSelect: () => setSection("meetings"),
       },
       {
         id: "reviews",
@@ -200,7 +212,9 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
 
   const meta: Record<Section, { title: string; subtitle: string }> = {
     profile: { title: "ملفي الشخصي", subtitle: "حافظ على بياناتك كاملة لجذب المزيد من الطلاب." },
+    availability: { title: "الأوقات المتاحة", subtitle: "حدد الأوقات التي يمكنك التدريس فيها." },
     bookings: { title: "الحجوزات", subtitle: "طلبات التواصل والحجوزات الواردة إليك." },
+    meetings: { title: "الحصص", subtitle: "حصصك الدراسية المجدولة." },
     reviews: { title: "التقييمات", subtitle: "رد على طلابك لبناء ثقة أكبر." },
     notifications: { title: "الإشعارات", subtitle: "آخر أحداث حسابك على المنصة." },
   };
@@ -270,12 +284,14 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
         </div>
       )}
 
+      {section === "availability" && <AvailabilityManager />}
       {section === "profile" && (
         <ProfileSection
           profile={profile}
           setProfile={setProfile}
           isProfileComplete={isProfileComplete}
           togglePublish={togglePublish}
+          baseCity={baseProfile?.city ?? null}
           notify={(m) => {
             setMessage(m);
             setTimeout(() => setMessage(null), 3000);
@@ -283,6 +299,7 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
         />
       )}
       {section === "bookings" && <BookingsList bookings={bookings} />}
+      {section === "meetings" && <TeacherMeetingsList />}
       {section === "reviews" && <ReviewsList reviews={reviews} setReviews={setReviews} notify={setMessage} />}
       {section === "notifications" && <NotificationsList notifs={notifs} setNotifs={setNotifs} />}
     </DashboardLayout>
@@ -297,11 +314,13 @@ function ProfileSection({
   isProfileComplete,
   togglePublish,
   notify,
+  baseCity,
 }: {
   profile: ProfileState;
   setProfile: React.Dispatch<React.SetStateAction<ProfileState>>;
   isProfileComplete: boolean;
   togglePublish: () => void;
+  baseCity: string | null;
   notify: (m: { kind: "success" | "error"; text: string }) => void;
 }) {
   const [saving, setSaving] = useState(false);
@@ -322,6 +341,7 @@ function ProfileSection({
           hourly_rate: profile.hourly_rate,
           subjects: profile.subjects,
           districts: profile.districts,
+          grade_levels: profile.grade_levels,
         })
         .eq("teacher_id", user.id);
       if (error) throw error;
@@ -447,12 +467,24 @@ function ProfileSection({
             value={String(profile.hourly_rate)}
             onChange={(v) => setProfile((p) => ({ ...p, hourly_rate: parseInt(v) || 0 }))}
           /> */}
-          <Field
-            icon={<BookOpen className="w-4 h-4" />}
-            label="التخصص"
-            value={profile.subjects[0] ?? ""}
-            onChange={(v) => setProfile((p) => ({ ...p, subjects: v ? [v] : [] }))}
-          />
+          <div className="space-y-2">
+            <label className="text-xs font-black text-white/40 uppercase tracking-widest">التخصص</label>
+            <div className="relative">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <select
+                value={profile.subjects[0] ?? ""}
+                onChange={(v) => setProfile((p) => ({ ...p, subjects: v.target.value ? [v.target.value] : [] }))}
+                className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-blue-500 outline-none transition-all font-bold text-sm appearance-none"
+              >
+                <option value="">اختر المادة</option>
+                {getSubjectsForGrades(profile.grade_levels as GradeLevel[]).map((s) => (
+                  <option key={s.value} value={s.label}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         <div className="space-y-2">
           <label className="text-xs font-black text-white/40 uppercase tracking-widest">النبذة التعريفية</label>
@@ -465,31 +497,34 @@ function ProfileSection({
         </div>
       </div>
 
-      {/* Districts */}
+      {/* Districts — city-aware */}
+      <TeacherDistrictsSection profile={profile} setProfile={setProfile} baseCity={baseCity} />
+
+      {/* Grade Levels */}
       <div className="bg-white/5 border border-white/10 rounded-[28px] p-6 md:p-8">
         <h3 className="font-bold mb-4 flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-red-500" /> أحياء التغطية في تبوك
+          <BookOpen className="w-5 h-5 text-green-500" /> المراحل الدراسية
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {DISTRICTS.map((d) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          {GRADE_LEVELS.map((g) => (
             <button
-              key={d}
+              key={g.value}
               type="button"
               onClick={() =>
                 setProfile((prev) => ({
                   ...prev,
-                  districts: prev.districts.includes(d)
-                    ? prev.districts.filter((x) => x !== d)
-                    : [...prev.districts, d],
+                  grade_levels: prev.grade_levels.includes(g.value)
+                    ? prev.grade_levels.filter((x) => x !== g.value)
+                    : [...prev.grade_levels, g.value],
                 }))
               }
               className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                profile.districts.includes(d)
-                  ? "bg-blue-600 border-blue-500 text-white"
+                profile.grade_levels.includes(g.value)
+                  ? "bg-green-600 border-green-500 text-white"
                   : "bg-white/5 border-white/5 text-white/40 hover:text-white/70"
               }`}
             >
-              {d}
+              {g.label}
             </button>
           ))}
         </div>
@@ -547,6 +582,215 @@ function ProfileSection({
         </button>
       </div>
     </form>
+  );
+}
+
+/* ───────────── Teacher Meetings ───────────── */
+
+function TeacherDistrictsSection({
+  profile,
+  setProfile,
+  baseCity,
+}: {
+  profile: ProfileState;
+  setProfile: React.Dispatch<React.SetStateAction<ProfileState>>;
+  baseCity: string | null;
+}) {
+  // Find the city value from the label stored in the profile
+  const cityEntry = SAUDI_REGIONS.flatMap((r) => r.cities).find(
+    (c) => c.label === baseCity
+  );
+  const neighborhoods = cityEntry ? getNeighborhoods(cityEntry.value) : [];
+
+  // If the teacher's city has neighborhoods defined, show them
+  // Otherwise show a simple text input for districts
+  if (neighborhoods.length > 0) {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-[28px] p-6 md:p-8">
+        <h3 className="font-bold mb-1 flex items-center gap-2">
+          <MapPin className="w-5 h-5 text-red-500" /> أحياء التغطية
+        </h3>
+        <p className="text-xs text-white/40 mb-4">
+          في {baseCity}
+          {profile.districts.length > 0 && (
+            <span className="text-blue-400 mr-2">({profile.districts.length} محدد)</span>
+          )}
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          {neighborhoods.map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() =>
+                setProfile((prev) => ({
+                  ...prev,
+                  districts: prev.districts.includes(d)
+                    ? prev.districts.filter((x) => x !== d)
+                    : [...prev.districts, d],
+                }))
+              }
+              className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                profile.districts.includes(d)
+                  ? "bg-blue-600 border-blue-500 text-white"
+                  : "bg-white/5 border-white/5 text-white/40 hover:text-white/70"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: free-text districts for cities without predefined neighborhoods
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-[28px] p-6 md:p-8">
+      <h3 className="font-bold mb-4 flex items-center gap-2">
+        <MapPin className="w-5 h-5 text-red-500" /> أحياء التغطية
+        {baseCity && <span className="text-xs text-white/30 font-normal">في {baseCity}</span>}
+      </h3>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {profile.districts.map((d) => (
+          <span
+            key={d}
+            className="text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/20 px-3 py-1.5 rounded-full flex items-center gap-1.5"
+          >
+            {d}
+            <button
+              type="button"
+              onClick={() =>
+                setProfile((prev) => ({
+                  ...prev,
+                  districts: prev.districts.filter((x) => x !== d),
+                }))
+              }
+              className="text-blue-400/50 hover:text-red-400"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="اكتب اسم الحي ثم اضغط إضافة..."
+          id="district-input"
+          className="flex-1 bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const input = e.currentTarget;
+              const val = input.value.trim();
+              if (val && !profile.districts.includes(val)) {
+                setProfile((prev) => ({ ...prev, districts: [...prev.districts, val] }));
+                input.value = "";
+              }
+            }
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const input = document.getElementById("district-input") as HTMLInputElement;
+            const val = input?.value.trim();
+            if (val && !profile.districts.includes(val)) {
+              setProfile((prev) => ({ ...prev, districts: [...prev.districts, val] }));
+              input.value = "";
+            }
+          }}
+          className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-all"
+        >
+          إضافة
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────── Teacher Meetings ───────────── */
+
+function TeacherMeetingsList() {
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [loadingMeetings, setLoadingMeetings] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setLoadingMeetings(false); return; }
+
+      const { data } = await supabase
+        .from("meetings")
+        .select("*")
+        .eq("teacher_id", user.id)
+        .order("scheduled_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        const studentIds = [...new Set(data.map((m: any) => m.student_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", studentIds);
+        const nameMap = new Map((profiles ?? []).map((p: any) => [p.id, p.full_name]));
+        setMeetings(data.map((m: any) => ({ ...m, student_name: nameMap.get(m.student_id) ?? "طالب" })));
+      }
+      setLoadingMeetings(false);
+    })();
+  }, []);
+
+  if (loadingMeetings) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (meetings.length === 0) {
+    return <EmptyCard icon={<GraduationCap />} title="لا توجد حصص مجدولة" />;
+  }
+
+  return (
+    <div className="space-y-3">
+      {meetings.map((m: any) => (
+        <div
+          key={m.id}
+          className="bg-white/5 border border-white/10 rounded-[24px] p-5 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${
+              m.status === "completed" ? "bg-green-500/10 border border-green-500/20" :
+              m.status === "cancelled" ? "bg-red-500/10 border border-red-500/20" :
+              "bg-blue-500/10 border border-blue-500/20"
+            }`}>
+              <GraduationCap className={`w-5 h-5 ${
+                m.status === "completed" ? "text-green-400" :
+                m.status === "cancelled" ? "text-red-400" :
+                "text-blue-400"
+              }`} />
+            </div>
+            <div>
+              <p className="font-bold text-sm">حصة مع {m.student_name}</p>
+              <p className="text-xs text-white/40">
+                {new Date(m.scheduled_at).toLocaleDateString("ar-EG", {
+                  day: "numeric", month: "long", year: "numeric",
+                  hour: "2-digit", minute: "2-digit",
+                })}
+                {" · "}{m.duration_minutes} دقيقة
+              </p>
+            </div>
+          </div>
+          <span className={`text-[11px] font-black uppercase tracking-widest ${
+            m.status === "completed" ? "text-green-400" :
+            m.status === "cancelled" ? "text-red-400" :
+            "text-blue-400"
+          }`}>
+            {m.status === "scheduled" ? "مجدولة" : m.status === "completed" ? "مكتملة" : "ملغاة"}
+          </span>
+        </div>
+      ))}
+    </div>
   );
 }
 

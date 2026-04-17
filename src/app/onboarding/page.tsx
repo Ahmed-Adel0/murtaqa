@@ -1,20 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { 
-  BookOpen, 
-  Award, 
-  FileText, 
-  Upload, 
-  CheckCircle2, 
-  Loader2, 
+import {
+  BookOpen,
+  Award,
+  FileText,
+  Upload,
+  CheckCircle2,
+  Loader2,
   Camera,
   ChevronLeft,
-  MapPin
+  MapPin,
+  GraduationCap,
+  ChevronDown,
+  Search,
+  Building2,
+  X,
 } from "lucide-react";
+import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
+import type { GradeLevel } from "@/lib/constants/grade-levels";
+import { getSubjectsForGrades } from "@/lib/constants/subjects";
+import { SAUDI_REGIONS, getNeighborhoods } from "@/lib/constants/locations";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -32,10 +41,30 @@ export default function OnboardingPage() {
     avatar_url: "",
     hourly_rate: "",
     teaching_type: "online",
+    selected_city: "",
     districts: [] as string[],
+    grade_levels: [] as string[],
   });
 
-  const availableDistricts = ["المروج", "العليا", "القادسية", "المصيف", "الروضة", "التعاون", "النهضة", "الياسمين"];
+  const [citySearch, setCitySearch] = useState("");
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+
+  const filteredRegions = useMemo(() => {
+    if (!citySearch.trim()) return SAUDI_REGIONS;
+    const term = citySearch.toLowerCase();
+    return SAUDI_REGIONS
+      .map((r) => ({
+        ...r,
+        cities: r.cities.filter(
+          (c) => c.label.includes(citySearch) || r.region.includes(citySearch)
+        ),
+      }))
+      .filter((r) => r.cities.length > 0);
+  }, [citySearch]);
+
+  const availableNeighborhoods = formData.selected_city
+    ? getNeighborhoods(formData.selected_city)
+    : [];
 
   const [files, setFiles] = useState<{
     certificate: File | null;
@@ -133,7 +162,7 @@ export default function OnboardingPage() {
 
     if (uploadError) throw uploadError;
     
-    if (bucket === 'teacher-images') {
+    if (bucket === 'teacher-images' || bucket === 'teacher-assets') {
       const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
       return publicUrl;
     }
@@ -149,7 +178,7 @@ export default function OnboardingPage() {
       let avUrl = formData.avatar_url;
 
       if (files.certificate) {
-        certUrl = await uploadFile(files.certificate, 'certificates', files.certificate.name);
+        certUrl = await uploadFile(files.certificate, 'teacher-assets', files.certificate.name);
       }
 
       if (files.avatar) {
@@ -171,8 +200,13 @@ export default function OnboardingPage() {
 
       if (appError) throw appError;
 
+      // Get the city label for the profile
+      const cityLabel = SAUDI_REGIONS.flatMap(r => r.cities).find(c => c.value === formData.selected_city)?.label ?? "";
+
       await supabase.from('profiles').update({
         avatar_url: avUrl,
+        city: cityLabel,
+        grade_level: JSON.stringify(formData.grade_levels),
       }).eq('id', user.id);
 
       router.replace("/dashboard");
@@ -233,13 +267,16 @@ export default function OnboardingPage() {
                       <BookOpen className="w-4 h-4 text-blue-400" />
                       المادة العلمية
                     </label>
-                    <input 
-                      type="text"
+                    <select
                       value={formData.subject}
                       onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                      placeholder="لغة عربية، رياضيات..."
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3.5 px-6 outline-none focus:border-blue-500/50 transition-all text-sm"
-                    />
+                      className="w-full bg-black bg-white/[0.03] border border-white/10 rounded-2xl py-3.5 px-6 outline-none focus:border-blue-500/50 transition-all text-sm appearance-none"
+                    >
+                      <option value="" className="bg-black">اختر المادة</option>
+                      {getSubjectsForGrades(formData.grade_levels as GradeLevel[]).map((s) => (
+                        <option key={s.value} className="bg-black" value={s.label}>{s.label}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-2">
@@ -247,7 +284,7 @@ export default function OnboardingPage() {
                       <Award className="w-4 h-4 text-blue-400" />
                       سنوات الخبرة
                     </label>
-                    <input 
+                    <input
                       type="number"
                       value={formData.experience}
                       onChange={(e) => setFormData({...formData, experience: e.target.value})}
@@ -257,25 +294,148 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* Districts Selection */}
+                {/* City & Region Selection */}
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-white/60 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-red-400" />
-                    أحياء التدريس في تبوك
+                    <Building2 className="w-4 h-4 text-purple-400" />
+                    المدينة والمنطقة
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {availableDistricts.map(d => (
+
+                  {/* City Search */}
+                  <div className="relative">
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <input
+                      type="text"
+                      value={citySearch}
+                      onChange={(e) => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
+                      onFocus={() => setShowCityDropdown(true)}
+                      placeholder="ابحث عن مدينتك..."
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-2xl py-3 pr-11 pl-4 outline-none focus:border-blue-500/50 transition-all text-sm"
+                    />
+                    {formData.selected_city && (
                       <button
-                        key={d}
                         type="button"
-                        onClick={() => toggleDistrict(d)}
+                        onClick={() => {
+                          setFormData((prev) => ({ ...prev, selected_city: "", districts: [] }));
+                          setCitySearch("");
+                        }}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Selected city badge */}
+                  {formData.selected_city && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/20 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3" />
+                        {SAUDI_REGIONS.flatMap(r => r.cities).find(c => c.value === formData.selected_city)?.label}
+                        <span className="text-white/30 mx-1">—</span>
+                        {SAUDI_REGIONS.flatMap(r => r.cities).find(c => c.value === formData.selected_city)?.region}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* City Dropdown */}
+                  <AnimatePresence>
+                    {showCityDropdown && !formData.selected_city && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="bg-white/[0.03] border border-white/10 rounded-2xl max-h-[280px] overflow-y-auto divide-y divide-white/5">
+                          {filteredRegions.length === 0 ? (
+                            <p className="text-center text-xs text-white/30 py-6">لا توجد نتائج</p>
+                          ) : (
+                            filteredRegions.map((region) => (
+                              <div key={region.region}>
+                                <div className="px-4 py-2 bg-white/[0.02] sticky top-0">
+                                  <span className="text-[10px] font-black text-white/30 uppercase tracking-wider">{region.region}</span>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-2">
+                                  {region.cities.map((city) => (
+                                    <button
+                                      key={city.value}
+                                      type="button"
+                                      onClick={() => {
+                                        setFormData((prev) => ({ ...prev, selected_city: city.value, districts: [] }));
+                                        setCitySearch(city.label);
+                                        setShowCityDropdown(false);
+                                      }}
+                                      className="text-right px-3 py-2 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-blue-500/10 transition-all"
+                                    >
+                                      {city.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Neighborhoods Selection — shown after city is selected */}
+                {formData.selected_city && availableNeighborhoods.length > 0 && (
+                  <div className="space-y-3">
+                    <label className="text-sm font-bold text-white/60 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-red-400" />
+                      أحياء التدريس
+                      {formData.districts.length > 0 && (
+                        <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">{formData.districts.length} محدد</span>
+                      )}
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {availableNeighborhoods.map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => toggleDistrict(d)}
+                          className={`px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${
+                            formData.districts.includes(d)
+                              ? "bg-blue-600 border-blue-500 text-white"
+                              : "bg-white/5 border-white/10 text-white/40 hover:text-white/70"
+                          }`}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Grade Levels Selection */}
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-white/60 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-green-400" />
+                    المراحل الدراسية التي تدرّسها
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {GRADE_LEVELS.map((g) => (
+                      <button
+                        key={g.value}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            grade_levels: prev.grade_levels.includes(g.value)
+                              ? prev.grade_levels.filter((v) => v !== g.value)
+                              : [...prev.grade_levels, g.value],
+                          }))
+                        }
                         className={`px-3 py-2 rounded-xl text-[10px] font-bold border transition-all ${
-                          formData.districts.includes(d) 
-                          ? 'bg-blue-600 border-blue-500 text-white' 
-                          : 'bg-white/5 border-white/10 text-white/40'
+                          formData.grade_levels.includes(g.value)
+                            ? "bg-green-600 border-green-500 text-white"
+                            : "bg-white/5 border-white/10 text-white/40"
                         }`}
                       >
-                        {d}
+                        {g.label}
                       </button>
                     ))}
                   </div>
@@ -298,7 +458,7 @@ export default function OnboardingPage() {
 
               <button 
                 onClick={() => setStep(2)}
-                disabled={!formData.subject || !formData.experience || formData.districts.length === 0}
+                disabled={!formData.subject || !formData.experience || !formData.selected_city || formData.grade_levels.length === 0}
                 className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:hover:bg-blue-600 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2 group"
               >
                 التالي

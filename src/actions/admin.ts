@@ -3,6 +3,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
 import { revalidatePath } from "next/cache";
+import { sendNotification } from "@/lib/notifications";
 
 /**
  * handleApplicationApproval
@@ -83,6 +84,21 @@ export async function handleApplicationApproval(
 
     // 3. Additional steps when approving
     if (status === "approved") {
+      // Fetch the user's profile to get grade_levels saved during onboarding
+      const { data: userProfile } = await supabaseAdmin
+        .from("profiles")
+        .select("grade_level")
+        .eq("id", trustedUserId)
+        .single();
+
+      // Parse grade_levels from the JSON string stored in profiles
+      let gradeLevels: string[] = [];
+      try {
+        if (userProfile?.grade_level) {
+          gradeLevels = JSON.parse(userProfile.grade_level);
+        }
+      } catch { /* ignore parse errors */ }
+
       // 3a. Create / Update the public teacher profile
       const { error: profileUpsertError } = await supabaseAdmin
         .from("teacher_public_profiles")
@@ -91,6 +107,7 @@ export async function handleApplicationApproval(
           bio: appData.bio,
           subjects: [appData.subject],
           districts: appData.districts || [],
+          grade_levels: gradeLevels,
           is_published: true,
           updated_at: new Date().toISOString(),
         });
@@ -108,7 +125,15 @@ export async function handleApplicationApproval(
       console.log(`✅ Teacher ${trustedUserId} approved. Public profile upserted.`);
     }
 
-    // 4. Revalidate relevant cache paths
+    // 4. Send notification to the teacher (platform + email)
+    const notifType = status === "approved" ? "application_approved" : "application_rejected";
+    await sendNotification({
+      userId: trustedUserId,
+      type: notifType as "application_approved" | "application_rejected",
+      data: { teacherName: "" },
+    });
+
+    // 5. Revalidate relevant cache paths
     revalidatePath("/admin/applications");
     revalidatePath("/admin");
     revalidatePath("/teachers");

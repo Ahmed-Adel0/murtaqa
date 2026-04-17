@@ -143,23 +143,21 @@ export default function SearchModal({ onSearch }: SearchModalProps) {
         </AnimatePresence>
 
         {/* Label — absolutely positioned BELOW, never affects button layout */}
-        <div
+       {/*  <div
           className="absolute top-[calc(100%+6px)] left-0 w-14 text-center pointer-events-none"
           style={{ opacity: isOpen ? 0 : 0.7, transition: "opacity 0.2s" }}
         >
           <span className="text-[9px] font-black text-primary leading-tight block">ابحث</span>
-        </div>
+        </div> */}
 
-        {/* Pulse ring — absolutely positioned, never moves button */}
-        {!isOpen && (
+     {/*     {!isOpen && (
           <span
             className="absolute inset-0 rounded-2xl bg-primary/30 pointer-events-none"
             style={{ animation: "search-pulse 2.8s ease-out infinite" }}
           />
         )}
 
-        {/* THE BUTTON — fixed size, no layout-shifting animations */}
-        <button
+         <button
           onClick={isOpen ? handleClose : handleOpen}
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
@@ -172,8 +170,7 @@ export default function SearchModal({ onSearch }: SearchModalProps) {
           onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
           aria-label="بحث عن مدرس"
         >
-          {/* Shimmer overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/12 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/12 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -200,7 +197,7 @@ export default function SearchModal({ onSearch }: SearchModalProps) {
               </m.span>
             )}
           </AnimatePresence>
-        </button>
+        </button> */}
       </div>
 
 

@@ -7,7 +7,7 @@ import React from "react";
 
 export default function UniversityMaintenance() {
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased flex flex-col items-center justify-center p-6" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-8 flex flex-col items-center justify-center p-6" dir="rtl">
       
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] aspect-square bg-blue-600/10 rounded-full blur-[80px] md:blur-[120px] pointer-events-none" />

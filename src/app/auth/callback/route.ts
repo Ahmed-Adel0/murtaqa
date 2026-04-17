@@ -13,6 +13,11 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Check if email is verified; if not, gate to verify-email
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && !user.email_confirmed_at) {
+        return NextResponse.redirect(`${origin}/verify-email`);
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
     return NextResponse.redirect(

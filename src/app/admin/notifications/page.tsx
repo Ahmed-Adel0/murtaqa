@@ -49,7 +49,7 @@ export default function AdminNotificationsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal p-8" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-20 p-8" dir="rtl">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-12">
            <div className="flex items-center gap-4">

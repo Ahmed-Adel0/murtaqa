@@ -6,9 +6,13 @@ import {
   LayoutDashboard,
   UserPlus,
   Users,
+  GraduationCap,
   Bell,
   Settings as SettingsIcon,
   Menu,
+  Search,
+  Banknote,
+  Calendar,
 } from "lucide-react";
 import { Sidebar, type SidebarItem } from "./Sidebar";
 
@@ -26,6 +30,14 @@ export function AdminShell({
     ? "applications"
     : pathname.startsWith("/admin/teachers")
     ? "teachers"
+    : pathname.startsWith("/admin/students")
+    ? "students"
+    : pathname.startsWith("/admin/search")
+    ? "search"
+    : pathname.startsWith("/admin/payments")
+    ? "payments"
+    : pathname.startsWith("/admin/meetings")
+    ? "meetings"
     : pathname.startsWith("/admin/notifications")
     ? "notifications"
     : "overview";
@@ -35,6 +47,10 @@ export function AdminShell({
       { id: "overview", label: "نظرة عامة", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dashboard" },
       { id: "applications", label: "طلبات الانضمام", icon: <UserPlus className="w-5 h-5" />, href: "/admin/applications" },
       { id: "teachers", label: "قائمة المعلمين", icon: <Users className="w-5 h-5" />, href: "/admin/teachers" },
+      { id: "students", label: "قائمة الطلاب", icon: <GraduationCap className="w-5 h-5" />, href: "/admin/students" },
+      { id: "search", label: "بحث المعلمين", icon: <Search className="w-5 h-5" />, href: "/admin/search" },
+      { id: "payments", label: "المدفوعات", icon: <Banknote className="w-5 h-5" />, href: "/admin/payments" },
+      { id: "meetings", label: "الحصص", icon: <Calendar className="w-5 h-5" />, href: "/admin/meetings" },
       { id: "notifications", label: "الإشعارات", icon: <Bell className="w-5 h-5" />, href: "/admin/notifications" },
       { id: "settings", label: "الإعدادات", icon: <SettingsIcon className="w-5 h-5" />, href: "#" },
     ],
@@ -42,7 +58,7 @@ export function AdminShell({
   );
 
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-8" dir="rtl">
       <Sidebar
         title="لوحة الإدارة"
         items={items}

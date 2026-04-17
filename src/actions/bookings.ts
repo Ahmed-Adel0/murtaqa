@@ -3,6 +3,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { createClient } from "@/lib/supabaseServer";
 import { revalidatePath } from "next/cache";
+import { sendNotification, sendAdminNotifications } from "@/lib/notifications";
 
 export async function createBooking(teacherId: string, teacherName: string) {
   const supabaseServer = await createClient();
@@ -25,35 +26,24 @@ export async function createBooking(teacherId: string, teacherName: string) {
 
     if (bookingError) throw bookingError;
 
-    // 2. Notify the Teacher
-    await supabaseAdmin.from('notifications').insert({
-      user_id: teacherId,
-      title: "طلب حجز جديد 📅",
-      message: `قام الطالب ${studentName} بإرسال طلب تواصل معك.`,
-      link: `/dashboard`,
-      type: 'booking'
+    // 2. Notify the Teacher (platform + email)
+    await sendNotification({
+      userId: teacherId,
+      type: "booking_request",
+      data: { teacherName, studentName },
     });
 
-    // 3. Notify all Admins
-    const { data: admins } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('role', 'admin');
-
-    if (admins) {
-      const adminNotifs = admins.map(admin => ({
-        user_id: admin.id,
-        title: "حجز جديد في المنصة 🚀",
-        message: `تم حجز المعلم ${teacherName} من قبل ${studentName}.`,
-        link: `/admin/teachers`,
-        type: 'booking'
-      }));
-      await supabaseAdmin.from('notifications').insert(adminNotifs);
-    }
+    // 3. Notify all Admins (platform only)
+    await sendAdminNotifications({
+      title: "حجز جديد في المنصة",
+      message: `تم حجز المعلم ${teacherName} من قبل ${studentName}.`,
+      link: "/admin/teachers",
+      type: "booking",
+    });
 
     revalidatePath(`/teachers/${teacherId}`);
     revalidatePath('/admin');
-    
+
     return { success: true };
   } catch (err: any) {
     console.error("Booking Error:", err);

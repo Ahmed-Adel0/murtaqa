@@ -12,7 +12,7 @@ export function DashboardShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-24 pb-16 px-4 md:px-8" dir="rtl">
+    <div className="min-h-screen bg-[#060607] text-white font-tajawal antialiased pt-8 pt-24 pb-16 px-4 md:px-8" dir="rtl">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>

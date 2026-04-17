@@ -31,6 +31,18 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const path = request.nextUrl.pathname
 
+  // Email verification gate — block unverified users from the rest of the app
+  if (user && !user.email_confirmed_at) {
+    if (path !== '/verify-email' && !path.startsWith('/auth/callback')) {
+      return NextResponse.redirect(new URL('/verify-email', request.url))
+    }
+    return response
+  }
+  // If verified but still on the verify page, redirect away
+  if (user && user.email_confirmed_at && path === '/verify-email') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // /admin — require admin role
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
@@ -77,5 +89,6 @@ export const config = {
     '/onboarding',
     '/admin/:path*',
     '/admin',
+    '/verify-email',
   ],
 }
