@@ -34,13 +34,14 @@ export default function AvailabilityManager() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("teacher_availability")
         .select("*")
         .eq("teacher_id", user.id)
         .order("day_of_week")
         .order("start_time");
-      setSlots((data as TeacherAvailability[]) ?? []);
+      // Table may not exist yet — just show empty
+      setSlots(error ? [] : (data as TeacherAvailability[]) ?? []);
       setLoading(false);
     })();
   }, []);

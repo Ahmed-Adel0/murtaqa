@@ -64,14 +64,28 @@ export default function AdminStudentsPage() {
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      // Get all student profiles
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, phone, city, grade_level, avatar_url, is_suspended, updated_at")
-        .eq("role", "student")
-        .order("updated_at", { ascending: false });
-
-      if (error) throw error;
+      // Get all student profiles (grade_level column may not exist yet)
+      let profiles: any[] | null = null;
+      {
+        const res = await supabase
+          .from("profiles")
+          .select("id, full_name, email, phone, city, grade_level, avatar_url, is_suspended, updated_at")
+          .eq("role", "student")
+          .order("updated_at", { ascending: false });
+        if (res.error?.code === "42703") {
+          const fallback = await supabase
+            .from("profiles")
+            .select("id, full_name, email, phone, city, avatar_url, is_suspended, updated_at")
+            .eq("role", "student")
+            .order("updated_at", { ascending: false });
+          if (fallback.error) throw fallback.error;
+          profiles = fallback.data;
+        } else if (res.error) {
+          throw res.error;
+        } else {
+          profiles = res.data;
+        }
+      }
 
       const studentIds = (profiles ?? []).map((p) => p.id);
 

@@ -33,7 +33,7 @@ export async function saveStudentPreferencesAndMatch(input: {
       .update({ ...updatePayload, grade_level: input.grade_level })
       .eq("id", user.id);
 
-    if (gradeError && gradeError.code === "PGRST204") {
+    if (gradeError && (gradeError.code === "42703" || gradeError.code === "PGRST204")) {
       // grade_level column doesn't exist yet — update without it
       console.warn("[student-intake] grade_level column missing, updating without it");
       await supabaseAdmin

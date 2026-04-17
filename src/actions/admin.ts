@@ -84,33 +84,42 @@ export async function handleApplicationApproval(
 
     // 3. Additional steps when approving
     if (status === "approved") {
-      // Fetch the user's profile to get grade_levels saved during onboarding
-      const { data: userProfile } = await supabaseAdmin
-        .from("profiles")
-        .select("grade_level")
-        .eq("id", trustedUserId)
-        .single();
-
-      // Parse grade_levels from the JSON string stored in profiles
+      // Try fetching grade_levels from profile (may not exist)
       let gradeLevels: string[] = [];
       try {
+        const { data: userProfile } = await supabaseAdmin
+          .from("profiles")
+          .select("grade_level")
+          .eq("id", trustedUserId)
+          .single();
         if (userProfile?.grade_level) {
           gradeLevels = JSON.parse(userProfile.grade_level);
         }
-      } catch { /* ignore parse errors */ }
+      } catch { /* column may not exist or parse error — skip */ }
 
       // 3a. Create / Update the public teacher profile
-      const { error: profileUpsertError } = await supabaseAdmin
+      const upsertPayload: Record<string, unknown> = {
+        teacher_id: trustedUserId,
+        bio: appData.bio,
+        subjects: [appData.subject],
+        districts: appData.districts || [],
+        is_published: true,
+        updated_at: new Date().toISOString(),
+      };
+      if (gradeLevels.length > 0) upsertPayload.grade_levels = gradeLevels;
+
+      let { error: profileUpsertError } = await supabaseAdmin
         .from("teacher_public_profiles")
-        .upsert({
-          teacher_id: trustedUserId,
-          bio: appData.bio,
-          subjects: [appData.subject],
-          districts: appData.districts || [],
-          grade_levels: gradeLevels,
-          is_published: true,
-          updated_at: new Date().toISOString(),
-        });
+        .upsert(upsertPayload as any);
+
+      // If grade_levels column doesn't exist, retry without it
+      if (profileUpsertError?.code === "42703") {
+        delete upsertPayload.grade_levels;
+        const retry = await supabaseAdmin
+          .from("teacher_public_profiles")
+          .upsert(upsertPayload as any);
+        profileUpsertError = retry.error;
+      }
 
       if (profileUpsertError) throw new Error(profileUpsertError.message);
 

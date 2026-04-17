@@ -15,7 +15,7 @@ export default async function DashboardPage() {
 
   switch (state.kind) {
     case "student":
-      return <StudentDashboard profile={state.profile} match={state.match} />;
+      return <StudentDashboard profile={state.profile} />;
     case "teacher-pending":
       return <TeacherPending application={state.application} />;
     case "teacher-rejected":

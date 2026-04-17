@@ -1,10 +1,6 @@
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabaseServer";
 import { getApplicationForUser } from "@/lib/queries/applications";
-import {
-  getActiveMatchForStudent,
-  suggestNextTeacherForStudent,
-} from "@/lib/queries/matches";
 import type { AdminStats, DashboardState } from "@/lib/types";
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -51,16 +47,7 @@ export async function getDashboardState(): Promise<DashboardState | null> {
     }
   }
 
-  // Pure student path — ensure an active match exists.
-  let match = await getActiveMatchForStudent(profile.id);
-  if (!match) {
-    const newMatch = await suggestNextTeacherForStudent(profile.id);
-    if (newMatch) {
-      // Re-read with joins via supabase-js helper
-      match = await getActiveMatchForStudent(profile.id);
-    }
-  }
-
-  return { kind: "student", profile, match };
+  // Pure student path — no auto-matching; admin controls everything
+  return { kind: "student", profile, match: null };
 }
 

@@ -30,13 +30,24 @@ export async function searchTeachers(filters: SearchFilters) {
   }
 
   // Layer 2: Fetch all published teachers
-  const { data: rawTeachers, error: fetchError } = await supabaseAdmin
-    .from("teacher_public_profiles")
-    .select("teacher_id, bio, subjects, districts, hourly_rate, grade_levels, is_published")
-    .eq("is_published", true);
-
-  if (fetchError) {
-    return { success: false, error: fetchError.message, results: [] };
+  let rawTeachers: any[] | null = null;
+  {
+    const res = await supabaseAdmin
+      .from("teacher_public_profiles")
+      .select("teacher_id, bio, subjects, districts, hourly_rate, grade_levels, is_published")
+      .eq("is_published", true);
+    if (res.error?.code === "42703") {
+      const fallback = await supabaseAdmin
+        .from("teacher_public_profiles")
+        .select("teacher_id, bio, subjects, districts, hourly_rate, is_published")
+        .eq("is_published", true);
+      if (fallback.error) return { success: false, error: fallback.error.message, results: [] };
+      rawTeachers = fallback.data;
+    } else if (res.error) {
+      return { success: false, error: res.error.message, results: [] };
+    } else {
+      rawTeachers = res.data;
+    }
   }
 
   let pool = rawTeachers ?? [];
@@ -47,10 +58,10 @@ export async function searchTeachers(filters: SearchFilters) {
     pool = pool.filter((t) => (t.subjects as string[] | null)?.includes(sub));
   }
 
-  // Filter by grade level (array contains)
+  // Filter by grade level (array contains) — skip if column doesn't exist
   if (filters.gradeLevel) {
     const gl = filters.gradeLevel;
-    pool = pool.filter((t) => (t.grade_levels as string[] | null)?.includes(gl));
+    pool = pool.filter((t) => t.grade_levels ? (t.grade_levels as string[]).includes(gl) : true);
   }
 
   // Filter by district (array contains)
@@ -101,13 +112,13 @@ export async function searchTeachers(filters: SearchFilters) {
     );
   }
 
-  // Fetch and filter by availability
+  // Fetch and filter by availability (table may not exist yet)
   if (results.length > 0) {
     const resultIds = results.map((t) => t.teacher_id);
     let availQuery = supabaseAdmin
       .from("teacher_availability")
       .select("*")
-      .in("teacher_id", resultIds);
+      .in("teacher_id", resultIds) as any;
 
     if (filters.dayOfWeek !== undefined && filters.dayOfWeek >= 0) {
       availQuery = availQuery.eq("day_of_week", filters.dayOfWeek);
@@ -119,7 +130,12 @@ export async function searchTeachers(filters: SearchFilters) {
       availQuery = availQuery.lte("end_time", filters.timeEnd);
     }
 
-    const { data: availability } = await availQuery;
+    const { data: availability, error: availErr } = await availQuery;
+
+    // If table doesn't exist, skip availability filtering
+    if (availErr) {
+      return { success: true, results };
+    }
 
     // If any time filter is active, only keep teachers who have matching slots
     if (filters.dayOfWeek !== undefined || filters.timeStart || filters.timeEnd) {

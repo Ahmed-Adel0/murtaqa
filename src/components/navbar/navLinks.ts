@@ -13,7 +13,7 @@ export type NavLink = {
 export const publicLinks: NavLink[] = [
   { id: "", label: "الرئيسية", path: "/", icon: Home, isHomeAnchor: true },
   { id: "about", label: "من نحن", path: "/#about", icon: Info, isHomeAnchor: true },
-  { id: "services", label: "خدماتنا", path: "/#services", icon: Briefcase, isHomeAnchor: true },
-  { id: "teachers", label: "المعلمون", path: "/teachers", icon: Users },
+  { id: "services", label: "خدماتنا", path: "/#services", icon: Briefcase, isHomeAnchor: true },/* 
+  { id: "teachers", label: "المعلمون", path: "/teachers", icon: Users }, */
   { id: "university", label: "دروس الجامعة", path: "/university-maintenance", icon: GraduationCap },
 ];

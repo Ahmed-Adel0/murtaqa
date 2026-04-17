@@ -50,10 +50,23 @@ export default function TeachersPage() {
   useEffect(() => {
     (async () => {
       // Fetch published teachers
-      const { data: profiles } = await supabase
-        .from("teacher_public_profiles")
-        .select("teacher_id, bio, subjects, districts, grade_levels, hourly_rate, is_published")
-        .eq("is_published", true);
+      // Try with grade_levels, fall back without if column doesn't exist
+      let profiles: any[] | null = null;
+      {
+        const res = await supabase
+          .from("teacher_public_profiles")
+          .select("teacher_id, bio, subjects, districts, grade_levels, hourly_rate, is_published")
+          .eq("is_published", true);
+        if (res.error?.code === "42703") {
+          const fallback = await supabase
+            .from("teacher_public_profiles")
+            .select("teacher_id, bio, subjects, districts, hourly_rate, is_published")
+            .eq("is_published", true);
+          profiles = fallback.data;
+        } else {
+          profiles = res.data;
+        }
+      }
 
       if (!profiles || profiles.length === 0) {
         setLoading(false);

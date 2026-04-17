@@ -58,7 +58,7 @@ export default function TeacherProfilePage({ params }: { params: Promise<{ id: s
       if (pError) throw pError;
       setTeacher(profile);
 
-      const [{ data: revs }, { count }, { data: avail }] = await Promise.all([
+      const [{ data: revs }, { count }, availRes] = await Promise.all([
         supabase.from("reviews").select("*").eq("teacher_id", teacherId).order("created_at", { ascending: false }),
         supabase.from("bookings").select("*", { count: "exact", head: true }).eq("teacher_id", teacherId),
         supabase.from("teacher_availability").select("*").eq("teacher_id", teacherId).order("day_of_week").order("start_time"),
@@ -66,7 +66,8 @@ export default function TeacherProfilePage({ params }: { params: Promise<{ id: s
 
       setReviews(revs || []);
       setBookingCount(count || 0);
-      setAvailability((avail as TeacherAvailability[]) || []);
+      // table may not exist yet — ignore errors
+      setAvailability(availRes.error ? [] : (availRes.data as TeacherAvailability[]) || []);
     } catch (err) {
       console.error(err);
     } finally {

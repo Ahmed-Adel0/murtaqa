@@ -720,11 +720,13 @@ function TeacherMeetingsList() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoadingMeetings(false); return; }
 
-      const { data } = await supabase
+      const { data, error: meetErr } = await supabase
         .from("meetings")
         .select("*")
         .eq("teacher_id", user.id)
         .order("scheduled_at", { ascending: false });
+
+      if (meetErr) { setLoadingMeetings(false); return; }
 
       if (data && data.length > 0) {
         const studentIds = [...new Set(data.map((m: any) => m.student_id))];

@@ -20,20 +20,45 @@ type MatchRow = StudentTeacherMatch & {
 
 export async function getActiveMatchForStudent(studentId: string): Promise<MatchWithTeacher | null> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("student_teacher_matches")
-    .select(`
-      *,
-      teacher:profiles!student_teacher_matches_teacher_id_fkey (full_name, avatar_url, city),
-      teacher_public_profile:teacher_public_profiles!teacher_public_profiles_teacher_id_fkey (
-        bio, subjects, districts, hourly_rate, grade_levels, is_published
-      )
-    `)
-    .eq("student_id", studentId)
-    .in("status", ["suggested", "accepted"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+
+  // Try with grade_levels, fall back without if column doesn't exist
+  let data: any = null;
+  {
+    const res = await supabase
+      .from("student_teacher_matches")
+      .select(`
+        *,
+        teacher:profiles!student_teacher_matches_teacher_id_fkey (full_name, avatar_url, city),
+        teacher_public_profile:teacher_public_profiles!teacher_public_profiles_teacher_id_fkey (
+          bio, subjects, districts, hourly_rate, grade_levels, is_published
+        )
+      `)
+      .eq("student_id", studentId)
+      .in("status", ["suggested", "accepted"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (res.error?.code === "42703") {
+      const fallback = await supabase
+        .from("student_teacher_matches")
+        .select(`
+          *,
+          teacher:profiles!student_teacher_matches_teacher_id_fkey (full_name, avatar_url, city),
+          teacher_public_profile:teacher_public_profiles!teacher_public_profiles_teacher_id_fkey (
+            bio, subjects, districts, hourly_rate, is_published
+          )
+        `)
+        .eq("student_id", studentId)
+        .in("status", ["suggested", "accepted"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      data = fallback.data;
+    } else {
+      data = res.data;
+    }
+  }
 
   if (!data) return null;
   const row = data as unknown as MatchRow;
@@ -88,7 +113,7 @@ export async function suggestNextTeacherForStudent(
     .eq("id", studentId)
     .maybeSingle();
 
-  if (studentErr && studentErr.code === "PGRST204") {
+  if (studentErr && (studentErr.code === "PGRST204" || studentErr.code === "42703")) {
     const { data: studentBasic } = await supabaseAdmin
       .from("profiles")
       .select("city")
@@ -100,11 +125,24 @@ export async function suggestNextTeacherForStudent(
   }
 
   // Get all published teachers with their profiles
-  const { data: candidates } = await supabaseAdmin
-    .from("teacher_public_profiles")
-    .select("teacher_id, subjects, districts, grade_levels, hourly_rate")
-    .eq("is_published", true)
-    .limit(100);
+  let candidates: any[] | null = null;
+  {
+    const res = await supabaseAdmin
+      .from("teacher_public_profiles")
+      .select("teacher_id, subjects, districts, grade_levels, hourly_rate")
+      .eq("is_published", true)
+      .limit(100);
+    if (res.error?.code === "42703") {
+      const fallback = await supabaseAdmin
+        .from("teacher_public_profiles")
+        .select("teacher_id, subjects, districts, hourly_rate")
+        .eq("is_published", true)
+        .limit(100);
+      candidates = fallback.data;
+    } else {
+      candidates = res.data;
+    }
+  }
 
   if (!candidates || candidates.length === 0) return null;
 
