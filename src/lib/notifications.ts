@@ -1,119 +1,143 @@
 "use server";
 
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { getResend } from "@/lib/email/resend-client";
-import { bookingRequestTemplate } from "@/lib/email/templates/booking-request";
-import { applicationApprovedTemplate, applicationRejectedTemplate } from "@/lib/email/templates/application-status";
-import { matchSuggestionTemplate } from "@/lib/email/templates/match-suggestion";
-import { paymentVerifiedTemplate, paymentRejectedTemplate } from "@/lib/email/templates/payment-status";
-import { meetingScheduledTemplate } from "@/lib/email/templates/meeting-scheduled";
+
+/* ════════════════════════════════════════════════════════════════════════ */
+/*  Notification Types — each has a clear Arabic title & message           */
+/* ════════════════════════════════════════════════════════════════════════ */
 
 type NotificationType =
-  | "booking_request"
-  | "application_approved"
-  | "application_rejected"
-  | "match_suggestion"
-  | "payment_verified"
-  | "payment_rejected"
-  | "meeting_scheduled";
+  | "trial_assigned"         // → student: admin assigned you a trial lesson
+  | "trial_done"             // → student: trial ended, please evaluate
+  | "evaluation_received"    // → admin: student submitted evaluation
+  | "subscription_active"    // → student: your subscription is now active
+  | "teacher_approved"       // → teacher: your application was approved
+  | "teacher_rejected"       // → teacher: your application was rejected
+  | "new_booking"            // → teacher: a student booked you
+  | "new_booking_admin"      // → admin: new booking on the platform
+  | "payment_confirmed"      // → student: payment verified
+  | "general";               // → anyone: custom message
 
-interface NotificationPayload {
+interface NotifyInput {
   userId: string;
   type: NotificationType;
-  data: Record<string, string>;
+  data?: Record<string, string>;
 }
 
-function getTemplate(type: NotificationType, data: Record<string, string>) {
+/**
+ * Get clear Arabic title + message for each notification type.
+ */
+function buildNotification(type: NotificationType, data: Record<string, string> = {}) {
   switch (type) {
-    case "booking_request":
-      return bookingRequestTemplate({ teacherName: data.teacherName ?? "", studentName: data.studentName ?? "" });
-    case "application_approved":
-      return applicationApprovedTemplate({ teacherName: data.teacherName ?? "" });
-    case "application_rejected":
-      return applicationRejectedTemplate({ teacherName: data.teacherName ?? "" });
-    case "match_suggestion":
-      return matchSuggestionTemplate({ studentName: data.studentName ?? "", teacherName: data.teacherName ?? "" });
-    case "payment_verified":
-      return paymentVerifiedTemplate({ studentName: data.studentName ?? "", amount: data.amount ?? "0" });
-    case "payment_rejected":
-      return paymentRejectedTemplate({ studentName: data.studentName ?? "", reason: data.reason });
-    case "meeting_scheduled":
-      return meetingScheduledTemplate({
-        userName: data.userName ?? "",
-        otherName: data.otherName ?? "",
-        scheduledAt: data.scheduledAt ?? "",
-        duration: parseInt(data.duration ?? "60"),
-        role: (data.role as "teacher" | "student") ?? "student",
-      });
+    // ─── Student notifications ───
+    case "trial_assigned":
+      return {
+        title: "تم تعيين حصة تجريبية لك",
+        message: `تم ترتيب حصة تجريبية لك مع المعلم ${data.teacherName || ""}. سيتم التواصل معك لتحديد الموعد.`,
+        link: "/dashboard",
+      };
+    case "trial_done":
+      return {
+        title: "يرجى تقييم الحصة التجريبية",
+        message: `انتهت حصتك التجريبية مع المعلم ${data.teacherName || ""}. يرجى تقييم التجربة من خلال الرابط المرسل إليك.`,
+        link: "/dashboard",
+      };
+    case "subscription_active":
+      return {
+        title: "تم تفعيل اشتراكك!",
+        message: `مبروك! تم تفعيل اشتراكك الشهري (12 حصة) ${data.price ? "بسعر " + data.price + " ريال" : ""}. يمكنك الآن بدء حصصك الدراسية.`,
+        link: "/dashboard",
+      };
+    case "payment_confirmed":
+      return {
+        title: "تم تأكيد الدفع",
+        message: `تم تأكيد عملية الدفع بمبلغ ${data.amount || "—"} ريال بنجاح. شكراً لثقتك بمرتقى.`,
+        link: "/dashboard",
+      };
+
+    // ─── Teacher notifications ───
+    case "teacher_approved":
+      return {
+        title: "تم قبول طلب انضمامك!",
+        message: `مبروك! تم قبول طلبك كمعلم في منصة مرتقى أكاديمي. يمكنك الآن إكمال ملفك الشخصي واستقبال الطلاب.`,
+        link: "/dashboard",
+      };
+    case "teacher_rejected":
+      return {
+        title: "تحديث حالة طلب الانضمام",
+        message: "نأسف، لم يتم قبول طلبك في الوقت الحالي. يمكنك مراجعة بياناتك وإعادة التقديم لاحقاً.",
+        link: "/dashboard",
+      };
+    case "new_booking":
+      return {
+        title: "طلب حصة جديد",
+        message: `تم تعيين حصة جديدة لك مع الطالب ${data.studentName || ""}. سيتم التواصل معك لتحديد الموعد.`,
+        link: "/dashboard",
+      };
+
+    // ─── Admin notifications ───
+    case "new_booking_admin":
+      return {
+        title: "حصة جديدة في المنصة",
+        message: `تم إنشاء حصة بين الطالب ${data.studentName || ""} والمعلم ${data.teacherName || ""}.`,
+        link: "/admin/meetings",
+      };
+    case "evaluation_received":
+      return {
+        title: "تقييم جديد من طالب",
+        message: `قام الطالب ${data.studentName || ""} بتقييم المعلم ${data.teacherName || ""} بـ ${data.rating || "—"} نجوم. ${data.wantsContinue === "true" ? "يرغب بالاستمرار ✅" : data.wantsContinue === "false" ? "لا يرغب بالاستمرار ❌" : ""}`,
+        link: "/admin/meetings",
+      };
+
+    // ─── General ───
+    case "general":
+      return {
+        title: data.title || "إشعار",
+        message: data.message || "",
+        link: data.link || "/dashboard",
+      };
   }
 }
 
 /**
- * sendNotification — unified multi-channel notification sender
- *
- * 1. Inserts in-app notification (notifications table)
- * 2. Sends email via Resend (non-blocking — won't fail the parent action)
+ * Send in-app notification to a specific user.
+ * System notifications only — no email.
  */
-export async function sendNotification(payload: NotificationPayload) {
-  const { userId, type, data } = payload;
+export async function sendNotification(input: NotifyInput) {
+  const notif = buildNotification(input.type, input.data);
 
-  // Get user's email and name
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("email, full_name, phone")
-    .eq("id", userId)
-    .single();
-
-  if (!profile?.email) return;
-
-  const template = getTemplate(type, { ...data, userName: profile.full_name ?? "" });
-
-  // 1. In-app notification
   await supabaseAdmin.from("notifications").insert({
-    user_id: userId,
-    title: template.title,
-    message: template.plainText,
-    link: template.link,
-    type,
+    user_id: input.userId,
+    title: notif.title,
+    message: notif.message,
+    link: notif.link,
+    type: input.type,
   });
-
-  // 2. Email via Resend (skip silently if not configured)
-  try {
-    const resend = getResend();
-    if (resend) {
-      await resend.emails.send({
-        from: process.env.EMAIL_FROM || "مرتقى أكاديمي <onboarding@resend.dev>",
-        to: profile.email,
-        subject: template.subject,
-        html: template.html,
-      });
-    }
-  } catch (err) {
-    console.error("[Email] Failed to send:", err);
-    // Don't throw — in-app notification was already saved
-  }
 }
 
 /**
- * sendAdminNotifications — notify all admins
+ * Send in-app notification to ALL admins.
  */
-export async function sendAdminNotifications(notification: {
-  title: string;
-  message: string;
-  link: string;
-  type: string;
+export async function sendAdminNotifications(input: {
+  type: NotificationType;
+  data?: Record<string, string>;
 }) {
   const { data: admins } = await supabaseAdmin
     .from("profiles")
     .select("id")
     .eq("role", "admin");
 
-  if (!admins) return;
+  if (!admins || admins.length === 0) return;
 
-  const notifs = admins.map((admin) => ({
+  const notif = buildNotification(input.type, input.data);
+
+  const rows = admins.map((admin) => ({
     user_id: admin.id,
-    ...notification,
+    title: notif.title,
+    message: notif.message,
+    link: notif.link,
+    type: input.type,
   }));
 
-  await supabaseAdmin.from("notifications").insert(notifs);
+  await supabaseAdmin.from("notifications").insert(rows);
 }

@@ -19,8 +19,8 @@ export default function Home() {
       <About />
       <HowItWorks />
       
-      <Services />
-      <Teachers />
+      <Services />{/* 
+      <Teachers /> */}
       <RegistrationForm />
       <FAQ />
       

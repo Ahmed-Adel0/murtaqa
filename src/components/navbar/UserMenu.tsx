@@ -94,7 +94,7 @@ export function UserMenu({
             لوحة التحكم
           </Link>
         </DropdownMenuItem>
-
+{/* 
         {role === "admin" && (
           <DropdownMenuItem asChild>
             <Link href="/admin">
@@ -102,7 +102,7 @@ export function UserMenu({
               لوحة الإدارة
             </Link>
           </DropdownMenuItem>
-        )}
+        )} */}
 
         <DropdownMenuItem asChild>
           <Link href="/dashboard">

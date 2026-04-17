@@ -39,10 +39,12 @@ export async function submitPaymentProof(input: {
       .single();
 
     await sendAdminNotifications({
-      title: "إثبات دفع جديد",
-      message: `قام الطالب ${profile?.full_name ?? "طالب"} بتأكيد تحويل مبلغ ${input.amount} ريال.`,
-      link: "/admin/payments",
-      type: "payment",
+      type: "general",
+      data: {
+        title: "إثبات دفع جديد",
+        message: `قام الطالب ${profile?.full_name ?? "طالب"} بتأكيد تحويل مبلغ ${input.amount} ريال.`,
+        link: "/admin/payments",
+      },
     });
 
     revalidatePath("/admin/payments");
@@ -92,7 +94,7 @@ export async function verifyPayment(paymentId: string) {
     // Notify student
     await sendNotification({
       userId: payment.student_id,
-      type: "payment_verified",
+      type: "payment_confirmed",
       data: { amount: String(payment.amount) },
     });
 

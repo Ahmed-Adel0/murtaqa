@@ -134,12 +134,10 @@ export async function handleApplicationApproval(
       console.log(`✅ Teacher ${trustedUserId} approved. Public profile upserted.`);
     }
 
-    // 4. Send notification to the teacher (platform + email)
-    const notifType = status === "approved" ? "application_approved" : "application_rejected";
+    // 4. Send notification to the teacher
     await sendNotification({
       userId: trustedUserId,
-      type: notifType as "application_approved" | "application_rejected",
-      data: { teacherName: "" },
+      type: status === "approved" ? "teacher_approved" : "teacher_rejected",
     });
 
     // 5. Revalidate relevant cache paths

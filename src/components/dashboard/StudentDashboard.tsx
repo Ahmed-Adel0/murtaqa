@@ -69,27 +69,29 @@ type BookingRow = {
  */
 type StudentStage = "new" | "waiting" | "trial" | "evaluate" | "payment" | "active";
 
+/**
+ * DB status mapping (bookings_status_check allows: pending, confirmed, completed, cancelled):
+ *   pending   = trial lesson assigned by admin
+ *   confirmed = trial done, student should evaluate
+ *   completed = subscription active (paid)
+ *   cancelled = cancelled
+ */
 function determineStage(profile: Profile, bookings: BookingRow[], hasReviewedTrial: boolean): StudentStage {
-  // If student has no grade_level and no city → never filled the form
   if (!profile.grade_level && !profile.city) return "new";
-
-  // If no bookings at all → waiting for admin to assign
   if (bookings.length === 0) return "waiting";
 
-  // If has booking but status is "trial" → in trial phase
   const latestBooking = bookings[0];
-  if (latestBooking.status === "trial") return "trial";
 
-  // If latest booking is "trial_done" and no review yet → evaluate
-  if (latestBooking.status === "trial_done" && !hasReviewedTrial) return "evaluate";
+  // pending = admin assigned trial lesson
+  if (latestBooking.status === "pending") return "trial";
 
-  // If latest booking is "trial_done" and has review → payment
-  if (latestBooking.status === "trial_done" && hasReviewedTrial) return "payment";
+  // confirmed = trial done → evaluate or show payment
+  if (latestBooking.status === "confirmed" && !hasReviewedTrial) return "evaluate";
+  if (latestBooking.status === "confirmed" && hasReviewedTrial) return "payment";
 
-  // If status is "active" or "paid" → active subscription
-  if (latestBooking.status === "active" || latestBooking.status === "paid") return "active";
+  // completed = active subscription
+  if (latestBooking.status === "completed") return "active";
 
-  // Default: waiting
   return "waiting";
 }
 

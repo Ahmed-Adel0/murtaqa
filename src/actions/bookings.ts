@@ -13,7 +13,6 @@ export async function createBooking(teacherId: string, teacherName: string) {
   const studentId = user?.id || null;
 
   try {
-    // 1. Create the booking record
     const { data: booking, error: bookingError } = await supabaseAdmin
       .from('bookings')
       .insert({
@@ -26,19 +25,17 @@ export async function createBooking(teacherId: string, teacherName: string) {
 
     if (bookingError) throw bookingError;
 
-    // 2. Notify the Teacher (platform + email)
+    // Notify teacher
     await sendNotification({
       userId: teacherId,
-      type: "booking_request",
-      data: { teacherName, studentName },
+      type: "new_booking",
+      data: { studentName },
     });
 
-    // 3. Notify all Admins (platform only)
+    // Notify admins
     await sendAdminNotifications({
-      title: "حجز جديد في المنصة",
-      message: `تم حجز المعلم ${teacherName} من قبل ${studentName}.`,
-      link: "/admin/teachers",
-      type: "booking",
+      type: "new_booking_admin",
+      data: { studentName, teacherName },
     });
 
     revalidatePath(`/teachers/${teacherId}`);

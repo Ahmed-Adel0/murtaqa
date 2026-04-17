@@ -113,15 +113,17 @@ export function MobileMenu({
               {role ? (
                 <>
                   <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 px-1">حسابي</p>
-                  <Link
-                    href="/dashboard"
-                    onClick={onClose}
-                    className="flex items-center gap-3 font-bold text-sm py-3 px-2 rounded-xl hover:bg-white/5 transition-colors"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-white/40" />
-                    لوحة التحكم
-                  </Link>
-                  {role === "admin" && (
+                  {role === "teacher" || role === "student" ? (
+                    <Link
+                      href="/dashboard"
+                      onClick={onClose}
+                      className="flex items-center gap-3 font-bold text-sm py-3 px-2 rounded-xl hover:bg-white/5 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-white/40" />
+                      لوحة التحكم
+                    </Link>
+                  ) : null}
+                {/*   {role === "admin" && (
                     <Link
                       href="/admin"
                       onClick={onClose}
@@ -130,7 +132,7 @@ export function MobileMenu({
                       <ShieldCheck className="w-4 h-4 text-amber-400" />
                       لوحة الإدارة
                     </Link>
-                  )}
+                  )} */}
                   <Link
                     href="/dashboard"
                     onClick={onClose}
