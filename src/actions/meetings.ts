@@ -14,6 +14,7 @@ export async function createMeeting(input: {
   meetingLink?: string;
   notes?: string;
   paymentId?: string;
+  isTrial?: boolean;
 }) {
   // Layer 1: Verify admin
   const supabase = await createClient();
@@ -41,6 +42,7 @@ export async function createMeeting(input: {
       notes: input.notes || null,
       payment_id: input.paymentId || null,
       status: "scheduled",
+      is_trial: input.isTrial || false,
     });
 
     if (error) throw error;
@@ -91,7 +93,7 @@ export async function createMeeting(input: {
 
 export async function updateMeetingStatus(
   meetingId: string,
-  status: "completed" | "cancelled"
+  status: "completed" | "cancelled" | "no_show"
 ) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

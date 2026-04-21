@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description:
     "المنصة الرائدة للتميز التعليمي في المملكة العربية السعودية، توفر دروساً عالية الجودة مع نخبة من المدرسين المعتمدين.",
   icons: {
-    icon: "/logos/Profile.png",
+    icon: "/logos/Profile-photoroom.png",
   },
 };
 

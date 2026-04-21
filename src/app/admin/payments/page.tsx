@@ -15,12 +15,14 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { verifyPayment, rejectPayment } from "@/actions/payments";
+import { createMeeting } from "@/actions/meetings";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 type PaymentRow = {
   id: string;
   student_id: string;
   teacher_id: string;
+  booking_id: string;
   amount: number;
   status: string;
   bank_account_used: string | null;
@@ -43,6 +45,52 @@ export default function AdminPaymentsPage() {
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [zoomLinks, setZoomLinks] = useState<Record<string, string>>({});
+  const [scheduledAts, setScheduledAts] = useState<Record<string, string>>({});
+  const [durations, setDurations] = useState<Record<string, number>>({});
+  const [meetingMessage, setMeetingMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+
+  const handleCreateMeeting = (payment: PaymentRow) => {
+    const link = zoomLinks[payment.id];
+    const time = scheduledAts[payment.id];
+    const dur = durations[payment.id] || 60;
+    
+    if (!time) {
+      setMeetingMessage({ kind: "error", text: "يجب تحديد وقت لحصة" });
+      setTimeout(() => setMeetingMessage(null), 3000);
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await createMeeting({
+        bookingId: payment.booking_id,
+        paymentId: payment.id,
+        teacherId: payment.teacher_id,
+        studentId: payment.student_id,
+        scheduledAt: new Date(time).toISOString(),
+        durationMinutes: dur,
+        meetingLink: link,
+      });
+
+      if (res.success) {
+        setMeetingMessage({ kind: "success", text: "تم حفظ رابط الحصة بنجاح!" });
+        setTimeout(() => setMeetingMessage(null), 3000);
+        
+        // Open WhatsApp if phone exists
+        if (payment.student_phone && link?.trim()) {
+           const msg = `السلام عليكم ${payment.student_name ?? ""}،\n` +
+           `تم استلام وتأكيد مبلغ التحويل (${payment.amount} ريال).\n` +
+           `شكراً لثقتك بمرتقى أكاديمي.\n\n` +
+           `موعد الحصة: ${new Date(time).toLocaleString("ar-EG")}\n` +
+           `رابط الحصة:\n${link.trim()}\n\n` +
+           `الرجاء الدخول في الموعد المحدد.`;
+           window.open(buildWhatsAppLink(payment.student_phone, msg), "_blank", "noopener,noreferrer");
+        }
+      } else {
+        setMeetingMessage({ kind: "error", text: res.error ?? "فشل حفظ الحصة" });
+        setTimeout(() => setMeetingMessage(null), 3000);
+      }
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -128,6 +176,23 @@ export default function AdminPaymentsPage() {
           </div>
         ))}
       </div>
+
+      <AnimatePresence>
+        {meetingMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className={`p-4 rounded-2xl text-sm font-bold text-center ${
+              meetingMessage.kind === "success"
+                ? "bg-green-500/10 text-green-400 border border-green-500/20"
+                : "bg-red-500/10 text-red-400 border border-red-500/20"
+            }`}
+          >
+            {meetingMessage.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Tabs */}
       <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
@@ -280,41 +345,53 @@ export default function AdminPaymentsPage() {
                         <Video className="w-4 h-4 text-blue-400" />
                         إرسال تأكيد الدفع ورابط الحصة للطالب
                       </div>
-                      <input
-                        type="url"
-                        dir="ltr"
-                        value={zoomLinks[payment.id] ?? ""}
-                        onChange={(e) =>
-                          setZoomLinks((prev) => ({ ...prev, [payment.id]: e.target.value }))
-                        }
-                        placeholder="https://zoom.us/j/..."
-                        className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500 font-mono"
-                      />
-                      <a
-                        href={
-                          zoomLinks[payment.id]?.trim()
-                            ? buildWhatsAppLink(
-                                payment.student_phone,
-                                `السلام عليكم ${payment.student_name ?? ""}،\n` +
-                                  `تم استلام وتأكيد مبلغ التحويل (${payment.amount} ريال).\n` +
-                                  `شكراً لثقتك بمرتقى أكاديمي.\n\n` +
-                                  `رابط الحصة:\n${zoomLinks[payment.id]!.trim()}\n\n` +
-                                  `الرجاء الدخول في الموعد المحدد.`
-                              )
-                            : undefined
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-disabled={!zoomLinks[payment.id]?.trim()}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] text-white/40">وقت الحصة</label>
+                        <input
+                          type="datetime-local"
+                          value={scheduledAts[payment.id] ?? ""}
+                          onChange={(e) =>
+                            setScheduledAts((prev) => ({ ...prev, [payment.id]: e.target.value }))
+                          }
+                          className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] text-white/40">المدة (دقائق)</label>
+                        <input
+                          type="number"
+                          value={durations[payment.id] ?? 60}
+                          onChange={(e) =>
+                            setDurations((prev) => ({ ...prev, [payment.id]: Number(e.target.value) }))
+                          }
+                          className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] text-white/40">رابط زووم (اختياري)</label>
+                        <input
+                          type="url"
+                          dir="ltr"
+                          value={zoomLinks[payment.id] ?? ""}
+                          onChange={(e) =>
+                            setZoomLinks((prev) => ({ ...prev, [payment.id]: e.target.value }))
+                          }
+                          placeholder="https://zoom.us/j/..."
+                          className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500 font-mono"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleCreateMeeting(payment)}
+                        disabled={!scheduledAts[payment.id] || isPending}
                         className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
-                          zoomLinks[payment.id]?.trim()
+                          scheduledAts[payment.id] && !isPending
                             ? "bg-green-600 text-white hover:bg-green-500"
-                            : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed pointer-events-none"
+                            : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
                         }`}
                       >
-                        <MessageCircle className="w-4 h-4" />
-                        إرسال عبر واتساب
-                      </a>
+                        {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        حفظ الموعد وإرسال
+                      </button>
                     </div>
                   ) : (
                     <div className="text-xs text-white/30 bg-white/5 border border-white/10 rounded-xl p-3">

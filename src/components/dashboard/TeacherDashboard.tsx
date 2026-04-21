@@ -27,9 +27,15 @@ import {
   Bell,
   CalendarCheck,
   Inbox,
+  Settings as SettingsIcon,
+  Mail,
+  Lock,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { deleteOwnAccount } from "@/actions/admin";
+import { updateTeacherCredentials } from "@/actions/teacher-credentials";
 import type { Profile } from "@/lib/types";
 import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
 import type { GradeLevel } from "@/lib/constants/grade-levels";
@@ -40,7 +46,7 @@ import type { SidebarItem } from "./shared/Sidebar";
 
 import AvailabilityManager from "./teacher/AvailabilityManager";
 
-type Section = "profile" | "reviews" | "notifications" | "bookings" | "availability" | "meetings";
+type Section = "profile" | "reviews" | "notifications" | "bookings" | "availability" | "meetings" | "settings";
 
 type ProfileState = {
   full_name: string;
@@ -99,6 +105,7 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
   const [notifs, setNotifs] = useState<NotifRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [message, setMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+  const [isLegacyTeacher, setIsLegacyTeacher] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -152,7 +159,33 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
       setBookings((bRows as BookingRow[]) ?? []);
       setReviews((rev.data as ReviewRow[]) ?? []);
       setNotifs((notif.data as NotifRow[]) ?? []);
+
+      // Check if teacher has a legacy placeholder email
+      if (user.email?.endsWith("@murtaqa.com")) {
+        setIsLegacyTeacher(true);
+      }
+
       setLoading(false);
+
+      // Realtime: listen for new notifications
+      const channel = supabase
+        .channel(`teacher-notifs-${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const n = payload.new as NotifRow;
+            setNotifs((prev) => [n, ...prev]);
+          }
+        )
+        .subscribe();
+
+      return () => { channel.unsubscribe(); };
     })();
   }, []);
 
@@ -206,6 +239,13 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
         onSelect: () => setSection("notifications"),
         badge: unread || undefined,
       },
+      {
+        id: "settings",
+        label: "الإعدادات",
+        icon: <SettingsIcon className="w-5 h-5" />,
+        onSelect: () => setSection("settings"),
+        badge: isLegacyTeacher ? 1 : undefined,
+      },
     ],
     [stats.bookings, stats.reviews, unread]
   );
@@ -217,6 +257,7 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
     meetings: { title: "الحصص", subtitle: "حصصك الدراسية المجدولة." },
     reviews: { title: "التقييمات", subtitle: "رد على طلابك لبناء ثقة أكبر." },
     notifications: { title: "الإشعارات", subtitle: "آخر أحداث حسابك على المنصة." },
+    settings: { title: "الإعدادات", subtitle: "تحديث بيانات حسابك وتفضيلاتك." },
   };
 
   const togglePublish = async () => {
@@ -284,6 +325,22 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
         </div>
       )}
 
+      {/* Legacy teacher banner */}
+      {isLegacyTeacher && section !== "settings" && (
+        <div
+          className="mb-5 p-4 bg-orange-500/10 border-2 border-orange-500/20 rounded-2xl flex items-center gap-4 cursor-pointer hover:bg-orange-500/15 transition-all"
+          onClick={() => setSection("settings")}
+        >
+          <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5 text-orange-400" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-orange-300 text-sm">⚠️ حسابك يحتاج تحديث!</p>
+            <p className="text-xs text-orange-400/70 mt-0.5">يرجى إضافة بريدك الإلكتروني الحقيقي وكلمة مرور جديدة. اضغط هنا →</p>
+          </div>
+        </div>
+      )}
+
       {section === "availability" && <AvailabilityManager />}
       {section === "profile" && (
         <ProfileSection
@@ -302,6 +359,12 @@ export default function TeacherDashboard({ profile: baseProfile }: { profile?: P
       {section === "meetings" && <TeacherMeetingsList />}
       {section === "reviews" && <ReviewsList reviews={reviews} setReviews={setReviews} notify={setMessage} />}
       {section === "notifications" && <NotificationsList notifs={notifs} setNotifs={setNotifs} />}
+      {section === "settings" && (
+        <TeacherSettingsSection
+          isLegacy={isLegacyTeacher}
+          onCredentialsUpdated={() => setIsLegacyTeacher(false)}
+        />
+      )}
     </DashboardLayout>
   );
 }
@@ -1035,6 +1098,142 @@ function EmptyCard({ icon, title }: { icon: React.ReactNode; title: string }) {
         {icon}
       </div>
       <h3 className="text-lg font-black mb-2">{title}</h3>
+    </div>
+  );
+}
+
+/* ───────────── Settings Section (Legacy Update) ───────────── */
+
+function TeacherSettingsSection({
+  isLegacy,
+  onCredentialsUpdated,
+}: {
+  isLegacy: boolean;
+  onCredentialsUpdated: () => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await updateTeacherCredentials({
+        newEmail: email,
+        newPassword: password,
+      });
+
+      if (res.success) {
+        setSuccess(true);
+        onCredentialsUpdated();
+      } else {
+        setError(res.error || "حدث خطأ غير معروف");
+      }
+    } catch (err) {
+      setError("حدث خطأ غير متوقع");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {isLegacy && !success && (
+        <div className="bg-orange-500/10 border-2 border-orange-500/20 rounded-[28px] p-6 lg:p-8">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-6 h-6 text-orange-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-black text-orange-400 mb-2">تحديث بيانات الدخول (هام جداً)</h3>
+              <p className="text-white/60 text-sm leading-relaxed mb-6 max-w-2xl">
+                بسبب التحديث الجديد للنظام، يجب عليك تعيين بريد إلكتروني حقيقي وكلمة مرور جديدة لتتمكن من تسجيل الدخول في المرات القادمة بسلاسة وتلقي الإشعارات على بريدك.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-white/40 uppercase tracking-widest">البريد الإلكتروني الجديد</label>
+                  <div className="relative">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="example@gmail.com"
+                      dir="ltr"
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-orange-500 outline-none transition-all font-bold text-sm text-left"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-white/40 uppercase tracking-widest">كلمة المرور الجديدة</label>
+                  <div className="relative">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="6 أحرف على الأقل"
+                      dir="ltr"
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-orange-500 outline-none transition-all font-bold text-sm text-left"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <p className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
+                    {error}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !email || !password}
+                  className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-[0_4px_24px_-8px_rgba(249,115,22,0.5)] disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                  تحديث البيانات
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-500/10 border border-green-500/20 rounded-[28px] p-8 text-center">
+          <div className="w-16 h-16 rounded-3xl bg-green-500/20 border-2 border-green-500/30 flex items-center justify-center mx-auto mb-5 drop-shadow-2xl">
+            <CheckCircle2 className="w-8 h-8 text-green-400" />
+          </div>
+          <h3 className="text-2xl font-black text-green-400 mb-2">تم التحديث بنجاح!</h3>
+          <p className="text-white/60 text-sm max-w-sm mx-auto leading-relaxed">
+            يمكنك الآن استخدام بريدك الإلكتروني الجديد وكلمة المرور في المرات القادمة لتسجيل الدخول إلى حسابك بأمان.
+          </p>
+        </div>
+      )}
+
+      {!isLegacy && !success && (
+        <div className="bg-white/5 border border-white/10 rounded-[28px] p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-6 h-6 text-blue-400" />
+          </div>
+          <h3 className="text-lg font-black mb-1">حسابك مؤمن ومحدث</h3>
+          <p className="text-sm text-white/40">تفضيلات الإعدادات سيتم إضافتها قريباً.</p>
+        </div>
+      )}
     </div>
   );
 }

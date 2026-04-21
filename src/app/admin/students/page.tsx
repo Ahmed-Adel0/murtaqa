@@ -353,7 +353,11 @@ export default function AdminStudentsPage() {
                       <div className="min-w-0">
                         <p className="font-bold text-sm truncate">{student.full_name ?? "طالب"}</p>
                         <div className="flex items-center gap-3 text-[10px] text-white/30">
-                          {student.email && <span>{student.email}</span>}
+                          {student.email && (
+                            <a href={`mailto:${student.email}`} className="hover:text-blue-400 transition-colors">
+                              {student.email}
+                            </a>
+                          )}
                           {student.city && <span className="flex items-center gap-0.5"><MapPin className="w-2.5 h-2.5" />{student.city}</span>}
                         </div>
                       </div>

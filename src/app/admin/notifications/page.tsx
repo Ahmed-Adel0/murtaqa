@@ -16,6 +16,34 @@ export default function AdminNotificationsPage() {
     fetchNotifications();
   }, []);
 
+  // Realtime: listen for new notifications
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      channel = supabase
+        .channel("admin-notifs-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            setNotifications((prev) => [payload.new as any, ...prev]);
+          }
+        )
+        .subscribe();
+    })();
+
+    return () => { channel?.unsubscribe(); };
+  }, []);
+
   const fetchNotifications = async () => {
     setLoading(true);
     try {

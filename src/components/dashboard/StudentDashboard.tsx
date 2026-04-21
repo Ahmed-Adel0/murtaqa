@@ -113,6 +113,8 @@ export default function StudentDashboard({
   const [intakeSubmitted, setIntakeSubmitted] = useState(false);
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     (async () => {
       const [{ data: n }, { data: b }] = await Promise.all([
         supabase
@@ -138,7 +140,26 @@ export default function StudentDashboard({
           .limit(1);
         if (reviews && reviews.length > 0) setHasReviewedTrial(true);
       }
+
+      // Realtime: listen for new notifications
+      channel = supabase
+        .channel(`student-notifs-${profile.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${profile.id}`,
+          },
+          (payload) => {
+            setNotifs((prev) => [payload.new as NotificationRow, ...prev]);
+          }
+        )
+        .subscribe();
     })();
+
+    return () => { channel?.unsubscribe(); };
   }, [profile.id]);
 
   const unread = notifs.filter((n) => !n.is_read).length;

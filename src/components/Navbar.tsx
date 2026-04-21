@@ -27,6 +27,8 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
+    let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+
     const hydrate = async (userId: string) => {
       const [{ data: profile }, { count }] = await Promise.all([
         supabase
@@ -48,6 +50,24 @@ export default function Navbar() {
         unreadNotifs: count ?? 0,
       });
       setAuthLoading(false);
+
+      // Subscribe to realtime notifications for this user
+      realtimeChannel?.unsubscribe();
+      realtimeChannel = supabase
+        .channel(`navbar-notifs-${userId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          () => {
+            setUser((prev) => ({ ...prev, unreadNotifs: prev.unreadNotifs + 1 }));
+          }
+        )
+        .subscribe();
     };
 
     supabase.auth.getUser().then(({ data: { user: u } }) => {
@@ -67,7 +87,10 @@ export default function Navbar() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      realtimeChannel?.unsubscribe();
+    };
   }, []);
 
   const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {

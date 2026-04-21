@@ -457,10 +457,15 @@ function BookingCard({
               </span>
             )}
             {row.student_email && (
-              <span className="bg-white/5 text-white/60 border border-white/10 px-2.5 py-1 rounded-full flex items-center gap-1 max-w-[220px]" dir="ltr" title={row.student_email}>
+              <a 
+                href={`mailto:${row.student_email}`}
+                className="bg-white/5 text-white/40 hover:text-blue-400 border border-white/10 px-2.5 py-1 rounded-full flex items-center gap-1 max-w-[220px] transition-colors" 
+                dir="ltr" 
+                title={`إرسال بريد إلكتروني لـ ${row.student_email}`}
+              >
                 <Mail className="w-3 h-3 shrink-0" />
                 <span className="truncate">{row.student_email}</span>
-              </span>
+              </a>
             )}
           </div>
 
@@ -528,6 +533,14 @@ function BookingCard({
               label="واتساب"
               size="sm"
             />
+          )}
+          {!row.student_phone && row.student_email && (
+            <a
+              href={`mailto:${row.student_email}?subject=بخصوص طلبك في مرتقى أكاديمي&body=مرحباً ${row.student_name ?? ""}، نتداخل معك بخصوص طلبك في المنصة...`}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white/5 text-white/60 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10 transition-all"
+            >
+              <Mail className="w-4 h-4" /> إرسال إيميل
+            </a>
           )}
         </div>
       </div>
