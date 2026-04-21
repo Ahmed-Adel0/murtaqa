@@ -13,6 +13,7 @@ import {
   Search,
   Banknote,
   Calendar,
+  Inbox,
 } from "lucide-react";
 import { Sidebar, type SidebarItem } from "./Sidebar";
 
@@ -28,6 +29,8 @@ export function AdminShell({
 
   const activeId = pathname.startsWith("/admin/applications")
     ? "applications"
+    : pathname.startsWith("/admin/bookings")
+    ? "bookings"
     : pathname.startsWith("/admin/teachers")
     ? "teachers"
     : pathname.startsWith("/admin/students")
@@ -46,6 +49,7 @@ export function AdminShell({
     () => [
       { id: "overview", label: "نظرة عامة", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dashboard" },
       { id: "applications", label: "طلبات الانضمام", icon: <UserPlus className="w-5 h-5" />, href: "/admin/applications" },
+      { id: "bookings", label: "طلبات الطلاب", icon: <Inbox className="w-5 h-5" />, href: "/admin/bookings" },
       { id: "teachers", label: "قائمة المعلمين", icon: <Users className="w-5 h-5" />, href: "/admin/teachers" },
       { id: "students", label: "قائمة الطلاب", icon: <GraduationCap className="w-5 h-5" />, href: "/admin/students" },
       { id: "search", label: "بحث المعلمين", icon: <Search className="w-5 h-5" />, href: "/admin/search" },

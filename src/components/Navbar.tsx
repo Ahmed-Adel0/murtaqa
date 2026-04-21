@@ -23,6 +23,7 @@ const EMPTY: UserState = { role: null, displayName: null, avatarUrl: null, unrea
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<UserState>(EMPTY);
+  const [authLoading, setAuthLoading] = useState(true);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -46,15 +47,24 @@ export default function Navbar() {
         avatarUrl: profile?.avatar_url ?? null,
         unreadNotifs: count ?? 0,
       });
+      setAuthLoading(false);
     };
 
     supabase.auth.getUser().then(({ data: { user: u } }) => {
-      if (u) hydrate(u.id);
+      if (u) {
+        hydrate(u.id);
+      } else {
+        setAuthLoading(false);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) hydrate(session.user.id);
-      else setUser(EMPTY);
+      if (session?.user) {
+        hydrate(session.user.id);
+      } else {
+        setUser(EMPTY);
+        setAuthLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -106,12 +116,19 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center">
-            <UserMenu
-              role={user.role}
-              displayName={user.displayName}
-              avatarUrl={user.avatarUrl}
-              unreadNotifs={user.unreadNotifs}
-            />
+            {authLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-9 bg-white/5 rounded-full animate-pulse" />
+                <div className="w-9 h-9 bg-white/5 rounded-full animate-pulse" />
+              </div>
+            ) : (
+              <UserMenu
+                role={user.role}
+                displayName={user.displayName}
+                avatarUrl={user.avatarUrl}
+                unreadNotifs={user.unreadNotifs}
+              />
+            )}
           </div>
 
           <button

@@ -28,6 +28,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { updateOwnProfile } from "@/actions/profile";
+import { createStudentBookingRequest } from "@/actions/bookings";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/lib/types";
 import { GRADE_LEVELS } from "@/lib/constants/grade-levels";
@@ -71,11 +72,17 @@ type BookingRow = {
 type StudentStage = "new" | "waiting" | "trial" | "evaluate" | "payment" | "active";
 
 /**
- * DB status mapping (bookings_status_check allows: pending, confirmed, completed, cancelled):
- *   pending   = trial lesson assigned by admin
- *   confirmed = trial done, student should evaluate
- *   completed = subscription active (paid)
- *   cancelled = cancelled
+ * DB status mapping — bookings_status_check allows
+ *   new / pending / in_progress / accepted / confirmed / completed / cancelled
+ *
+ * Student-facing stages:
+ *   new / in_progress                → waiting (admin hasn't matched a teacher yet)
+ *   accepted                         → payment (teacher matched, student pays)
+ *   pending                          → trial (admin assigned a trial lesson)
+ *   confirmed + !reviewed            → evaluate
+ *   confirmed + reviewed             → payment
+ *   completed                        → active subscription
+ *   cancelled                        → fall through to waiting
  */
 function determineStage(profile: Profile, bookings: BookingRow[], hasReviewedTrial: boolean): StudentStage {
   if (!profile.grade_level && !profile.city) return "new";
@@ -83,14 +90,11 @@ function determineStage(profile: Profile, bookings: BookingRow[], hasReviewedTri
 
   const latestBooking = bookings[0];
 
-  // pending = admin assigned trial lesson
+  if (latestBooking.status === "new" || latestBooking.status === "in_progress") return "waiting";
+  if (latestBooking.status === "accepted") return "payment";
   if (latestBooking.status === "pending") return "trial";
-
-  // confirmed = trial done → evaluate or show payment
   if (latestBooking.status === "confirmed" && !hasReviewedTrial) return "evaluate";
   if (latestBooking.status === "confirmed" && hasReviewedTrial) return "payment";
-
-  // completed = active subscription
   if (latestBooking.status === "completed") return "active";
 
   return "waiting";
@@ -250,13 +254,43 @@ function HomeSection({
 
 /* ─── Stage 1: Intake Form → sends to WhatsApp ─── */
 
+const DAYS_OF_WEEK: { value: string; label: string }[] = [
+  { value: "sun", label: "الأحد" },
+  { value: "mon", label: "الإثنين" },
+  { value: "tue", label: "الثلاثاء" },
+  { value: "wed", label: "الأربعاء" },
+  { value: "thu", label: "الخميس" },
+  { value: "fri", label: "الجمعة" },
+  { value: "sat", label: "السبت" },
+];
+
+const CURRENT_LEVELS: { value: string; label: string }[] = [
+  { value: "excellent", label: "ممتاز" },
+  { value: "good", label: "جيد جداً" },
+  { value: "average", label: "متوسط" },
+  { value: "weak", label: "يحتاج متابعة" },
+];
+
+const TIME_SLOTS: { value: string; label: string }[] = [
+  { value: "morning", label: "صباحاً" },
+  { value: "afternoon", label: "بعد الظهر" },
+  { value: "evening", label: "مساءً" },
+  { value: "night", label: "ليلاً" },
+];
+
 function IntakeForm({ onComplete, profile }: { onComplete: () => void; profile?: Profile }) {
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     grade_level: "",
     subject: "",
     city: "",
     teaching_type: "both" as "online" | "offline" | "both",
+    phone: profile?.phone ?? "",
+    current_level: "",
+    preferred_days: [] as string[],
+    preferred_times: "",
     notes: "",
   });
 
@@ -265,41 +299,81 @@ function IntakeForm({ onComplete, profile }: { onComplete: () => void; profile?:
     : SUBJECTS;
 
   const gradeLabel = GRADE_LEVELS.find((g) => g.value === form.grade_level)?.label ?? "";
+  const currentLevelLabel = CURRENT_LEVELS.find((c) => c.value === form.current_level)?.label ?? "";
+  const preferredDaysLabel = form.preferred_days
+    .map((v) => DAYS_OF_WEEK.find((d) => d.value === v)?.label)
+    .filter(Boolean)
+    .join("، ");
+  const preferredTimesLabel = TIME_SLOTS.find((t) => t.value === form.preferred_times)?.label ?? "";
 
-  const handleSubmit = () => {
-    // Build WhatsApp message
-    const teachingLabel = form.teaching_type === "online" ? "عن بعد" : form.teaching_type === "offline" ? "حضوري" : "كلاهما";
-    const message =
-      `السلام عليكم مرتقى أكاديمي، أود الاستفسار والتسجيل:\n\n` +
-      `👤 اسم الطالب: ${profile?.full_name || "—"}\n` +
-      `🎓 المرحلة الدراسية: ${gradeLabel}\n` +
-      `📚 المادة المطلوبة: ${form.subject}\n` +
-      `🏫 طريقة التدريس: ${teachingLabel}\n` +
-      (form.city ? `📍 المدينة: ${form.city}\n` : "") +
-      `📝 تفاصيل إضافية: ${form.notes || "لا يوجد"}`;
+  const togglePreferredDay = (day: string) => {
+    setForm((prev) => ({
+      ...prev,
+      preferred_days: prev.preferred_days.includes(day)
+        ? prev.preferred_days.filter((d) => d !== day)
+        : [...prev.preferred_days, day],
+    }));
+  };
 
-    const link = buildWhatsAppLink(ADMIN_PHONE, message);
-    window.open(link, "_blank");
+  const handleSubmit = async () => {
+    if (!form.phone.trim()) {
+      setError("رقم الواتساب مطلوب للتواصل معك.");
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
 
-    // Also save preferences to profile
-    (async () => {
+    try {
+      // 1. Save student profile preferences (city / phone)
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from("profiles").update({
           city: form.city || undefined,
+          phone: form.phone,
           updated_at: new Date().toISOString(),
         }).eq("id", user.id);
 
-        // Try grade_level (may not exist)
         try {
           await supabase.from("profiles").update({
             grade_level: form.grade_level,
           }).eq("id", user.id);
         } catch { /* column may not exist */ }
       }
-    })();
 
-    onComplete();
+      // 2. Persist the request as a booking with status='new' so it lands
+      //    in the admin bookings queue.
+      const res = await createStudentBookingRequest({
+        subject: form.subject,
+        grade_level: form.grade_level,
+        current_level: form.current_level || undefined,
+        preferred_days: form.preferred_days,
+        preferred_times: form.preferred_times || undefined,
+        notes: form.notes || undefined,
+      });
+      if (!res.success) throw new Error(res.error ?? "فشل إرسال الطلب");
+
+      // 3. Pre-fill a WhatsApp message (manual send — user presses the button).
+      const teachingLabel = form.teaching_type === "online" ? "عن بعد" : form.teaching_type === "offline" ? "حضوري" : "كلاهما";
+      const message =
+        `السلام عليكم مرتقى أكاديمي، أود الاستفسار والتسجيل:\n\n` +
+        `👤 اسم الطالب: ${profile?.full_name || "—"}\n` +
+        `📱 واتساب: ${form.phone}\n` +
+        `🎓 المرحلة الدراسية: ${gradeLabel}\n` +
+        `📚 المادة المطلوبة: ${form.subject}\n` +
+        (currentLevelLabel ? `📊 المستوى الحالي: ${currentLevelLabel}\n` : "") +
+        (preferredDaysLabel ? `🗓️ الأيام المفضلة: ${preferredDaysLabel}\n` : "") +
+        (preferredTimesLabel ? `⏰ الأوقات المفضلة: ${preferredTimesLabel}\n` : "") +
+        `🏫 طريقة التدريس: ${teachingLabel}\n` +
+        (form.city ? `📍 المدينة: ${form.city}\n` : "") +
+        `📝 تفاصيل إضافية: ${form.notes || "لا يوجد"}`;
+      window.open(buildWhatsAppLink(ADMIN_PHONE, message), "_blank");
+
+      onComplete();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "تعذّر إرسال الطلب");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -397,6 +471,92 @@ function IntakeForm({ onComplete, profile }: { onComplete: () => void; profile?:
                 <p className="text-white/40 text-sm">ساعدنا في إيجاد الأنسب لك.</p>
               </div>
               <div className="space-y-4">
+                {/* WhatsApp phone — required */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40">
+                    رقم الواتساب <span className="text-red-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                      placeholder="05xxxxxxxx"
+                      dir="ltr"
+                      className="w-full bg-black/40 border border-white/10 rounded-2xl py-3.5 pr-11 pl-5 focus:border-blue-500 outline-none transition-all font-bold text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Current level */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40">المستوى الحالي للطالب</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {CURRENT_LEVELS.map((l) => (
+                      <button
+                        key={l.value}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, current_level: l.value }))}
+                        className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                          form.current_level === l.value
+                            ? "bg-blue-600/15 border-blue-500 text-blue-300"
+                            : "bg-white/[0.02] border-white/10 text-white/50 hover:text-white/80"
+                        }`}
+                      >
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preferred days */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40">
+                    الأيام المفضلة
+                    {form.preferred_days.length > 0 && (
+                      <span className="text-blue-400 mr-2">({form.preferred_days.length})</span>
+                    )}
+                  </label>
+                  <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
+                    {DAYS_OF_WEEK.map((d) => (
+                      <button
+                        key={d.value}
+                        type="button"
+                        onClick={() => togglePreferredDay(d.value)}
+                        className={`py-2 rounded-xl border text-[11px] font-bold transition-all ${
+                          form.preferred_days.includes(d.value)
+                            ? "bg-blue-600/15 border-blue-500 text-blue-300"
+                            : "bg-white/[0.02] border-white/10 text-white/50 hover:text-white/80"
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Preferred times */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/40">الأوقات المفضلة</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {TIME_SLOTS.map((t) => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, preferred_times: t.value }))}
+                        className={`py-2.5 rounded-xl border text-xs font-bold transition-all ${
+                          form.preferred_times === t.value
+                            ? "bg-blue-600/15 border-blue-500 text-blue-300"
+                            : "bg-white/[0.02] border-white/10 text-white/50 hover:text-white/80"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-white/40">المدينة (اختياري)</label>
                   <div className="relative">
@@ -440,16 +600,23 @@ function IntakeForm({ onComplete, profile }: { onComplete: () => void; profile?:
                 <div className="flex flex-wrap gap-2">
                   <span className="text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/20 px-3 py-1.5 rounded-full">{gradeLabel}</span>
                   <span className="text-xs font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 px-3 py-1.5 rounded-full">{form.subject}</span>
+                  {currentLevelLabel && <span className="text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 px-3 py-1.5 rounded-full">{currentLevelLabel}</span>}
+                  {preferredDaysLabel && <span className="text-xs font-bold bg-white/5 text-white/60 border border-white/10 px-3 py-1.5 rounded-full">{preferredDaysLabel}</span>}
+                  {preferredTimesLabel && <span className="text-xs font-bold bg-white/5 text-white/60 border border-white/10 px-3 py-1.5 rounded-full">{preferredTimesLabel}</span>}
                   {form.city && <span className="text-xs font-bold bg-white/5 text-white/50 border border-white/10 px-3 py-1.5 rounded-full">{form.city}</span>}
                 </div>
               </div>
 
+              {error && (
+                <p className="text-sm font-bold text-red-400 text-center">{error}</p>
+              )}
+
               <div className="flex gap-3">
-                <button type="button" onClick={() => setStep(2)} className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all">السابق</button>
-                <button type="button" onClick={handleSubmit}
-                  className="flex-1 bg-green-600 text-white font-bold py-4 rounded-2xl hover:bg-green-500 transition-all flex items-center justify-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
-                  إرسال عبر الواتساب
+                <button type="button" onClick={() => setStep(2)} disabled={submitting} className="px-6 py-4 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all disabled:opacity-40">السابق</button>
+                <button type="button" onClick={handleSubmit} disabled={submitting}
+                  className="flex-1 bg-green-600 text-white font-bold py-4 rounded-2xl hover:bg-green-500 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                  {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MessageCircle className="w-5 h-5" />}
+                  إرسال الطلب وفتح الواتساب
                 </button>
               </div>
             </motion.div>

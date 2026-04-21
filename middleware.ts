@@ -43,6 +43,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // If already logged in, don't let them access /login or /register → send to dashboard
+  if (user && (path === '/login' || path === '/register')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // /admin — require admin role
   if (path.startsWith('/admin')) {
     if (!user) return NextResponse.redirect(new URL('/login', request.url))
@@ -90,5 +95,7 @@ export const config = {
     '/admin/:path*',
     '/admin',
     '/verify-email',
+    '/login',
+    '/register',
   ],
 }

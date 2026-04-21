@@ -63,6 +63,13 @@ export async function getAdminAnalytics() {
     cancelled: bookings.filter((b) => b.status === "cancelled").length,
   };
 
+  // ── Student request (booking workflow) stats ──
+  const requestStats = {
+    new: bookings.filter((b) => b.status === "new").length,
+    in_progress: bookings.filter((b) => b.status === "in_progress").length,
+    accepted: bookings.filter((b) => b.status === "accepted").length,
+  };
+
   // ── Payment stats ──
   const totalRevenue = payments
     .filter((p) => p.status === "verified")
@@ -171,6 +178,7 @@ export async function getAdminAnalytics() {
       teachers: teachers.length,
       applications: appStats,
       lessons: lessonStats,
+      requests: requestStats,
       payments: paymentStats,
       reviews: { total: reviews.length, avgRating },
     },

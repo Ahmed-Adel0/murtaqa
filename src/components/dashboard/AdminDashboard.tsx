@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   Sparkles,
   DollarSign,
+  Inbox,
 } from "lucide-react";
 import {
   LineChart,
@@ -69,6 +70,7 @@ export default function AdminDashboard({
   const items: SidebarItem[] = [
     { id: "overview", label: "نظرة عامة", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dashboard" },
     { id: "applications", label: "طلبات الانضمام", icon: <UserPlus className="w-5 h-5" />, href: "/admin/applications", badge: stats.pending || undefined },
+    { id: "bookings", label: "طلبات الطلاب", icon: <Inbox className="w-5 h-5" />, href: "/admin/bookings", badge: analytics?.counts.requests.new || undefined },
     { id: "teachers", label: "المعلمين", icon: <Users className="w-5 h-5" />, href: "/admin/teachers", badge: stats.approved || undefined },
     { id: "students", label: "الطلاب", icon: <GraduationCap className="w-5 h-5" />, href: "/admin/students" },
     { id: "meetings", label: "الحصص", icon: <Calendar className="w-5 h-5" />, href: "/admin/meetings" },
@@ -156,8 +158,9 @@ function AnalyticsContent({ analytics, stats }: { analytics: NonNullable<AdminAn
       </div>
 
       {/* ═══ Quick Status ═══ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MiniStatCard label="طلبات معلقة" value={c.applications.pending} color="text-yellow-400" icon={<Clock className="w-4 h-4" />} href="/admin/applications" />
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <MiniStatCard label="طلبات جديدة" value={c.requests.new} color="text-yellow-300" icon={<Inbox className="w-4 h-4" />} href="/admin/bookings" />
+        <MiniStatCard label="طلبات الانضمام" value={c.applications.pending} color="text-yellow-400" icon={<Clock className="w-4 h-4" />} href="/admin/applications" />
         <MiniStatCard label="حصص تجريبية" value={c.lessons.trial} color="text-blue-400" icon={<Sparkles className="w-4 h-4" />} href="/admin/meetings" />
         <MiniStatCard label="اشتراكات نشطة" value={c.lessons.active} color="text-green-400" icon={<CheckCircle2 className="w-4 h-4" />} href="/admin/meetings" />
         <MiniStatCard label="مدفوعات معلقة" value={c.payments.pending} color="text-orange-400" icon={<Banknote className="w-4 h-4" />} href="/admin/payments" />

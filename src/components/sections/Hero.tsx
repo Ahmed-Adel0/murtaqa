@@ -106,11 +106,11 @@ const Hero = () => {
 
               {/* Secondary CTA */}
               <button
-                onClick={() => document.getElementById("teachers")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() => location.href = "/login"}
                 className="flex items-center justify-center gap-3 bg-transparent border border-primary/30 hover:border-primary/60 hover:bg-primary/6 text-foreground font-black rounded-2xl px-10 py-4 text-base transition-all duration-300 cursor-pointer flex-1 sm:flex-none"
               >
                 <GraduationCap className="w-5 h-5 text-primary shrink-0" />
-                تصفح المدرسين
+               إبدأ الان!
               </button>
             </m.div>
 

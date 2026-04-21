@@ -10,9 +10,12 @@ import {
   Clock,
   DollarSign,
   User,
+  Video,
+  MessageCircle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { verifyPayment, rejectPayment } from "@/actions/payments";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 
 type PaymentRow = {
   id: string;
@@ -27,6 +30,7 @@ type PaymentRow = {
   verified_at: string | null;
   rejection_reason: string | null;
   student_name?: string;
+  student_phone?: string | null;
 };
 
 type Tab = "pending" | "verified" | "rejected";
@@ -38,18 +42,20 @@ export default function AdminPaymentsPage() {
   const [isPending, startTransition] = useTransition();
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [zoomLinks, setZoomLinks] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
-      // Fetch payments with student name join
+      // Fetch payments with student name + phone join
       const { data } = await supabase
         .from("payments")
-        .select("*, profiles!payments_student_id_fkey(full_name)")
+        .select("*, profiles!payments_student_id_fkey(full_name, phone)")
         .order("created_at", { ascending: false });
 
       const mapped = (data ?? []).map((p: any) => ({
         ...p,
         student_name: p.profiles?.full_name ?? "طالب",
+        student_phone: p.profiles?.phone ?? null,
       }));
       setPayments(mapped);
       setLoading(false);
@@ -257,13 +263,63 @@ export default function AdminPaymentsPage() {
               )}
 
               {payment.status === "verified" && (
-                <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
-                  <CheckCircle2 className="w-4 h-4" />
-                  تم التأكيد
-                  {payment.verified_at && (
-                    <span className="text-white/30 text-xs">
-                      — {new Date(payment.verified_at).toLocaleDateString("ar-EG")}
-                    </span>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-2 text-green-400 text-sm font-bold">
+                    <CheckCircle2 className="w-4 h-4" />
+                    تم التأكيد
+                    {payment.verified_at && (
+                      <span className="text-white/30 text-xs">
+                        — {new Date(payment.verified_at).toLocaleDateString("ar-EG")}
+                      </span>
+                    )}
+                  </div>
+
+                  {payment.student_phone ? (
+                    <div className="bg-black/30 border border-white/5 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-bold text-white/60">
+                        <Video className="w-4 h-4 text-blue-400" />
+                        إرسال تأكيد الدفع ورابط الحصة للطالب
+                      </div>
+                      <input
+                        type="url"
+                        dir="ltr"
+                        value={zoomLinks[payment.id] ?? ""}
+                        onChange={(e) =>
+                          setZoomLinks((prev) => ({ ...prev, [payment.id]: e.target.value }))
+                        }
+                        placeholder="https://zoom.us/j/..."
+                        className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-sm outline-none focus:border-blue-500 font-mono"
+                      />
+                      <a
+                        href={
+                          zoomLinks[payment.id]?.trim()
+                            ? buildWhatsAppLink(
+                                payment.student_phone,
+                                `السلام عليكم ${payment.student_name ?? ""}،\n` +
+                                  `تم استلام وتأكيد مبلغ التحويل (${payment.amount} ريال).\n` +
+                                  `شكراً لثقتك بمرتقى أكاديمي.\n\n` +
+                                  `رابط الحصة:\n${zoomLinks[payment.id]!.trim()}\n\n` +
+                                  `الرجاء الدخول في الموعد المحدد.`
+                              )
+                            : undefined
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-disabled={!zoomLinks[payment.id]?.trim()}
+                        className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+                          zoomLinks[payment.id]?.trim()
+                            ? "bg-green-600 text-white hover:bg-green-500"
+                            : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed pointer-events-none"
+                        }`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        إرسال عبر واتساب
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-white/30 bg-white/5 border border-white/10 rounded-xl p-3">
+                      لا يوجد رقم جوال للطالب — لا يمكن الإرسال عبر واتساب.
+                    </div>
                   )}
                 </div>
               )}
